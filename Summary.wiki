@@ -1,12 +1,11 @@
-= Noisy Random Boolean Network tool for cell differentiation process =
+= CoGNaC: a Chaste plugin for the multiscale simulation of Gene regulatory Networks driving the spatial dynamics of tissues and Cancer =
+
+Welcome to CoGNaC.
+
 
 Designed only to work as bolt-on project for Chaste v3.2
 
-Welcome to the Chaste wiki.
-
-This section contains pages generated automatically from the source code accompanying the master's thesis work made by Simone Rubinacci (University of Milano Bicocca).
-
-The source code is designed in order to use a Noisy Random Boolean Network model for describe the intracellular level for the cell differentiation described in http://dx.doi.org/10.1371/journal.pone.0017703 and in http://dx.doi.org/10.1101/000927.
+TODO Cite references here.
 
 == Sample commands to install and run everything ==
 
