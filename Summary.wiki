@@ -1,0 +1,84 @@
+= Noisy Random Boolean Network tool for cell differentiation process =
+
+Designed only to work as bolt-on project for Chaste v3.2
+
+Welcome to the Chaste wiki.
+
+This section contains pages generated automatically from the source code accompanying the master's thesis work made by Simone Rubinacci (University of Milano Bicocca).
+
+The source code is designed in order to use a Noisy Random Boolean Network model for describe the intracellular level for the cell differentiation described in http://dx.doi.org/10.1371/journal.pone.0017703 and in http://dx.doi.org/10.1101/000927.
+
+== Sample commands to install and run everything ==
+
+Before running this simulation you will need to [wiki:InstallGuides/InstallGuide install Chaste's dependencies].
+The easiest way to do this is using an Ubuntu machine (or an Ubuntu virtual machine) as discussed on InstallGuides/UbuntuPackage.
+
+You will also need the Chaste source code for this project. It is available from the [http://www.cs.ox.ac.uk/chaste/download.html main Chaste download page] as extensions to Chaste release 3.2 under the projects heading, or you can [wiki:ChasteGuides/AccessCodeRepository access the source code direct from our repository].
+Move the project in Chaste/projects where 'Chaste' is the folder containing the Chaste source code.
+
+For the latter option, using a command-line subversion client, you can get the required code in a new folder called 'Chaste' with the commands:
+{{{
+#!sh
+svn --username anonymous checkout https://chaste.cs.ox.ac.uk/svn/chaste/tags/release_3.2 Chaste
+cd Chaste/projects
+svn checkout https://chaste.cs.ox.ac.uk/svn/chaste/projects/[Add project name here]
+}}}
+Use your email address as the password for the 'anonymous' account.
+
+Once you have checked out the project you need to install [http://buddy.sourceforge.net/manual/main.html BuDDy] tool, you may do so from the command line as follows:
+{{{
+sudo apt-get install libbdd-dev
+}}}
+
+This will install BuDDy using the standard folders but you also need to inform Chaste to add BuDDy as library dependency,
+adding this information to the hostconfing file.
+Scons will tell you which machine file it's using in the first few lines, e.g:
+{{{
+cd path/to/Chaste
+scons
+ scons: Reading SConscript files ...
+ Using hostconfig settings from python/hostconfig/ubuntu.py
+ Running infrastructure tests...
+}}}
+
+So, in the file you are using (e.g. python/hostconfig/ubuntu.py), just add 'bdd' similar to:
+{{{
+other_libraries = boost_libs + ['xerces-c',
+                                'hdf5', 'z',
+                                'parmetis', 'metis', 'bdd']
+}}}
+
+Now the project should be installed, and everything should run correctly. In order to
+test if everything is installed correctly, you can run some test, so
+from a command line do:
+{{{
+scons test\_suite=projects/[Add a project name here]/test/TestArrayDirectedGraph.hpp
+scons test\_suite=projects/[Add a project name here]/test/TestRandomBooleanNetwork.hpp
+scons test\_suite=projects/[Add a project name here]/test/TestDifferentiationTree.hpp
+scons test\_suite=projects/[Add a project name here]/test/TestDifferentiationTreeBasedCellCycleModel.hpp
+}}}
+
+If each test run is passed, you can start run some tutorial, or create your own test suites.
+
+== How to compile and run tests ==
+
+To run the test and simulations, use:
+{{{
+cd path/to/Chaste
+scons test_suite=projects/[Add project name here]/test/TEST\_CLASS\_NAME.hpp
+}}}
+
+There are seven test suites in the projects:
+TestDifferentiationTree.hpp - for testing DifferentiationTree class.
+TestDifferentiationTreeBasedCellCycleModel.hpp - for testing the DifferentiationTreeBasedCellCycelModel class.
+TestRandomBooleanNetwork.hpp - for testing the RandomBooleanNetwork class.
+TestArrayDirectedGraph.hpp - for testing ArrayDirectedGraph and GraphNode classes.
+
+TestCryptBasedSimulationsUsingDifferentiationTreeCellCycleModel.hpp - crypt simulations using DifferentiationTreeBasedCellCycelModel.
+TestPottsBasedSimulationsUsingDifferentiationTreeCellCycleModel.hpp - CPM simulations using DifferentiationTreeBasedCellCycelModel.
+TestWntDependentCryptUsingDifferentiationTreeCellCycleModel.hpp - Wnt dependent simulations using DifferentiationTreeBasedCellCycelModel.
+
+'''NB''': Note that the code for simulations ''will not work'' with Chaste release 3.1 or earlier.
+
+For further information on using Chaste, see [wiki:ChasteGuides extensive guide material].
+You may also wish to look at some of the [wiki:UserTutorials basic user tutorials].

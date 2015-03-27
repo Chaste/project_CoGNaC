@@ -3,7 +3,7 @@
 	<name>TemplateProject</name>
 	<comment></comment>
 	<projects>
-		<project>Chaste</project>
+		<project>CoGNaC</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
