@@ -9,14 +9,12 @@
 #include "RandomBooleanNetwork.hpp"
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
 #include "DifferentiationTree.hpp"
-#include "DifferentiationTreeNode.hpp"
+#include "RandomNumberGenerator.hpp"
+
 #include "iostream"
 #include <map>
 #include <vector>
 #include <set>
-#include <utility>
-#include <sys/time.h>
-#include "DifferentiationTreeBasedCellCycleModel.hpp"
 #include "FakePetscSetup.hpp"
 
 
@@ -75,15 +73,7 @@ public:
         RandomNumberGenerator::Instance()->Reseed(0);
 
         ThresholdErgodicSetDifferentiationTree TES_tree(11,2,true,1);
-        /*
-         * 11,2,true,1 (good matrix!)
-         * 36,2,true,0
-         * 25,2,true,0
-         * 25,2,false,0.5
-         * 25,2,false,0
-         * Long:
-         * 36,2,false,0
-         */
+
         TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(), 4u);
         DifferentiationTree* Diff_tree = TES_tree.getDifferentiationTree();
         TS_ASSERT_EQUALS(Diff_tree->size(), 5u);
@@ -258,51 +248,7 @@ public:
         assignment = bdd_appex(assignment, T, bddop_and, var_set);
         assignment = bdd_replace(assignment, renamepair);
 
-        /*
-         * *************** METODO 1
-         *
-         * bdd_setvarnum(2*3);
-         * x_0 = bdd_ithvar(0);
-         * x_1 = bdd_ithvar(2);
-         * x_2 = bdd_ithvar(4);
-         * nx_0 = bdd_ithvar(1);
-         * nx_1 = bdd_ithvar(3);
-         * nx_2 = bdd_ithvar(5);
-         * T = bddtrue;
-         * T &= bdd_apply(nx_0, x_1 & x_2, bddop_biimp);
-         * T &= bdd_apply(nx_1, bddfalse, bddop_biimp);
-         * T &= bdd_apply(nx_2, x_0 | x_1, bddop_biimp);
-         * int pvar[] = {0,2,4};
-         * bdd primvar = bdd_makeset(pvar, 3);
-         * bdd assegnamento = (x_0 & x_1 & x_2);
-         * bdd one = bdd_appex(assegnamento, T, bddop_and, primvar);
-         * std::cout << "ONE: "<< bddtable << one << "\n";
-         *
-         * **************** METODO 2
-         *
-         * z = (x & y) | !x;
-         * STEP 0: Creo un vettore di variabili, vediamo se poi riusciamo
-         * a semplificare la cosa. Comunque e' un vettore di indici
-         * univoci.
-         * int pvar[] = {0,1,2};
-         * bdd primvar = bdd_makeset(pvar, 3);
-         * STEP 1: Il mio assegnamento nella forma di bdd.
-         * bdd assegnamento = (x & y);
-         * STEP 2: AND tra funzione ed assegnamento
-         * bdd temp = z & assegnamento;
-         * STEP 3: Existentially quantify out all variables in STEP 2 formula.
-         * bdd one = bdd_exist(temp, primvar);
-         * STEP 4: if (one == bddtrue) -> return true;
-         */
         bdd_done();
-    }
-
-
-    int get_current_time()
-    {
-         struct timeval time;
-         gettimeofday(&time,NULL);
-         return time.tv_sec * 1000 + time.tv_usec/1000;
     }
 
 };

@@ -81,6 +81,17 @@ private:
     std::set<std::set<unsigned> > getStronglyConnectedComponents(std::vector<std::map<unsigned,double> > graph) const;
 
     /**
+     * Get the strongly connected components from a matrix (see as
+     * Adjacency table of a graph where exist an edge if the value
+     * matrix[i][j] is > 0), using the Tarjan's algorithm.
+     *
+     * @param matrix
+     *
+     * @return set of sets ssc of the graph.
+     */
+    std::set<std::set<unsigned> > getTerminalStronglyConnectedComponents(std::vector<std::map<unsigned,double> > graph) const;
+
+    /**
      * Helper of the getStronglyConnectedComponents() method. Find the
      * components using depth first search.
      *

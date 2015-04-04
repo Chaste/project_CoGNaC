@@ -1,5 +1,6 @@
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
 #include <limits>
+#include <iostream>
 
 ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(
         std::vector<std::map<unsigned,double> > stochastic_matrix,
@@ -56,7 +57,7 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
     bool thresholds_ended = false;
     do
     {
-        std::set<std::set<unsigned> > strongly_connected_components = getStronglyConnectedComponents(current_stochastic_matrix);
+        std::set<std::set<unsigned> > strongly_connected_components = getTerminalStronglyConnectedComponents(current_stochastic_matrix);
         unsigned* component = new unsigned[mStochasticMatrix.size()];
         std::set<std::set<unsigned> >::iterator it_components;
         std::set<unsigned>::iterator it_nodes;
@@ -66,6 +67,7 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
             for (it_nodes = it_components->begin(); it_nodes!=it_components->end(); ++it_nodes)
             {
                 component[*it_nodes] = counter_set;
+                std::cout<< *it_nodes << " -> scc: " << counter_set << "\n ";
             }
             counter_set++;
         }
@@ -82,7 +84,7 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
             }
             else
             {
-                //Usually it is an error, but we create a "false root".
+                //we create a "false root".
                 if (isTes)
                 {
                     std::set<unsigned> component_states;
@@ -147,8 +149,11 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
         if (thresholds.size()>0)
         {
             threshold = *thresholds.begin();
-            thresholds.erase(thresholds.begin());
-            current_stochastic_matrix = getPrunedMatrix(threshold);
+            if (threshold != 1.0)
+            {
+                thresholds.erase(thresholds.begin());
+                current_stochastic_matrix = getPrunedMatrix(threshold);
+            } else	thresholds_ended = true;
         }
         else
         {
@@ -263,6 +268,42 @@ std::set<std::set<unsigned> > ThresholdErgodicSetDifferentiationTree::getStrongl
     delete[] used;
     delete[] lowlink;
 
+    return components;
+}
+
+std::set<std::set<unsigned> > ThresholdErgodicSetDifferentiationTree::getTerminalStronglyConnectedComponents(
+        std::vector<std::map<unsigned,double> > graph) const
+{
+    unsigned number_of_nodes = graph.size();
+    unsigned time=0;
+    unsigned* lowlink = new unsigned[number_of_nodes];
+    bool* used = new bool[number_of_nodes];
+    for (unsigned i=0; i<number_of_nodes; i++)
+    {
+        used[i] = false;
+        lowlink[i] = 0;
+    }
+    std::vector<unsigned> stack;
+
+    std::set<std::set<unsigned> > components;
+    for (unsigned u=0; u<number_of_nodes; u++)
+    {
+        if (!used[u])
+        {
+            findComponentDepthFirstSearch(u, graph, lowlink,
+                                    used, stack, time, components);
+        }
+    }
+    delete[] used;
+    delete[] lowlink;
+/*
+
+    std::set<unsigned>::iterator component;
+    for (component = components.begin(); component != components.end(); ++component)
+    {
+
+    }
+*/
     return components;
 }
 
