@@ -1,6 +1,13 @@
 #ifndef TESTARRAYDIRECTEDGRAPH_HPP_
 #define TESTARRAYDIRECTEDGRAPH_HPP_
 
+/*
+ * = Testing the class ArrayDirectedGraph =
+ *
+ * This class is used to test the class ArrayDirectedGraph.
+ *
+ * === Include header files ===
+*/
 #include <cxxtest/TestSuite.h>
 #include "CheckpointArchiveTypes.hpp"
 #include "SmartPointers.hpp"

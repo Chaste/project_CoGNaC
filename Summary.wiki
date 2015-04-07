@@ -2,9 +2,9 @@
 
 Welcome to CoGNaC.
 
-Designed only to work as bolt-on project for Chaste v3.2 or v3.3
+Designed only to work as bolt-on project for Chaste v3.2 or v3.3.
 
-This section contains pages generated automatically from the source code accompanying "Cellular cardiac electrophysiology modelling with Chaste and CellML".
+This section contains pages generated automatically from the source code accompanying "CoGNaC: a Chaste plugin for the multiscale simulation of Gene regulatory Networks driving the spatial dynamics of tissues and Cancer".
 
 == Getting the code and installing dependencies ==
 
@@ -25,7 +25,7 @@ This will install BuDDy using the standard folders but you also need to inform C
 adding this information to the hostconfing file.
 Scons will tell you which machine file it's using in the first few lines, e.g:
 {{{
-cd path/to/Chaste
+cd <Chaste3.3 path>
 scons
  scons: Reading SConscript files ...
  Using hostconfig settings from python/hostconfig/ubuntu.py
@@ -42,45 +42,38 @@ other_libraries = boost_libs + ['xerces-c',
 Now the project should be installed, and everything should compile and run correctly. In order to
 test if everything is installed correctly, you can run some tests. So from a command line do:
 {{{
-cd <Chaste3.2 path>
+cd <Chaste3.3 path>
 scons test_suite=projects/CoGNaC/test/TestArrayDirectedGraph.hpp
-}}}
-
-{{{
-cd <Chaste3.3 path>
 scons test_suite=projects/CoGNaC/test/TestDifferentiationTree.hpp
-}}}
-
-{{{
-cd <Chaste3.3 path>
 scons test_suite=projects/CoGNaC/test/TestRandomBooleanNetwork.hpp
 }}}
 
-If each test run is passed, you can run some tutorials, or create your own test suites.
+If each test run is passed, you can run some tests or simulations, or create your own test suites.
 
 == Documentation ==
 There are three folders - `networks_samples`, `src` and `test`.
 
- 1. The `networks_samples` folder contains networks and matrices used during simulations.
+ 1. The `networks_samples` folder contains networks and matrices used for tests and simulations.
  1. The `src` folder contains the following classes:
-  * `ArrayDirectedGraph.hpp`, `GraphNode.hpp` - these classese model a directed graph.
-  * `RandomBooleanNetwork.hpp` - this class is used for the generation of a RBN and attractor search.
-  * `ThresholdErgodicSetDifferentiationTree.hpp` - this class generates an ATN and a 'DifferentiationTree' from a RBN.
-  * `DifferentiationTree.hpp`, `DifferentiationTreeNode.cpp` - these classes are used to represent a cellular differentiation tree.
-  * `DifferentiationTreeBasedCellCycleModel.hpp`, `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.cpp` - for the representation of a cell cycle model which use the information contained in a 'DifferentiationTree'. They performs stochastic differentiation. The second class perfroms stem cells asymmetric division.
+  * `ArrayDirectedGraph.hpp`, `GraphNode.hpp` - modelling a directed graph.
+  * `RandomBooleanNetwork.hpp` - used for the generation of a random Boolean network (RBN) and the attractor search.
+  * `ThresholdErgodicSetDifferentiationTree.hpp` - generating an ATN and a `DifferentiationTree` object from a RBN.
+  * `DifferentiationTree.hpp`, `DifferentiationTreeNode.hpp` - used to represent a cellular differentiation tree.
+  * `DifferentiationTreeBasedCellCycleModel.hpp`, `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` - used for the representation of a cell cycle model, using the information contained in a `DifferentiationTree` object and performing stochastic differentiation. In addition `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` implements stem cells asymmetric division.
  1. The `test` folder contains:
-  * [wiki:PaperTutorials/CoGNaC/test/TestArrayDirectedGraph.hpp] - for testing ArrayDirectedGraph class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestDifferentiationTree.hpp] - for testing DifferentiationTree class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestTestGraphNode.hpp] - for testing GraphNode class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestRandomBooleanNetwork.hpp] - for testing RandomBooleanNetwork class and the Buddy dependency..
-  * [wiki:PaperTutorials/CoGNaC/test/TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - This file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
-  * [wiki:PaperTutorials/CoGNaC/test/TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModelTutorial.hpp] - This file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree, and in Figure 5 showing crypt simulations.
+  * [wiki:PaperTutorials/CoGNaC/test/TestArrayDirectedGraph TestArryDirectedGraph.hpp] - for testing ArrayDirectedGraph class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestDifferentiationTree TestDifferentiationTree.hpp] - for testing DifferentiationTree class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestGraphNode TestGraphNode.hpp] - for testing GraphNode class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestRandomBooleanNetwork TestGraphNode.hpp] - for testing RandomBooleanNetwork class and the Buddy dependency..
+  * [wiki:PaperTutorials/CoGNaC/test/GeneActivationPatternsInThelperCellDifferentiation TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - This file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
+  * [wiki:PaperTutorials/CoGNaC/test/CancerCellColonizationOfAColonCrypt TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp] - This file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree. It can also generate the crypt simulations shown in Figure 5.
   
 == Run tests ==
 You can then run tests and simulations with, for example,
 {{{
 cd <Chaste3.3 path>
 scons test_suite=projects/CoGNaC/test/TestSearchingGeneActivationPatternsInThelperNetwork.hpp
+scons test_suite=projects/CoGNaC/test/TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp
 }}}
 
 ----
