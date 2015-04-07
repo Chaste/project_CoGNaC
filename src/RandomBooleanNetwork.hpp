@@ -142,7 +142,7 @@ private:
 
     /**
      * Normalize a frequency matrix and obtain a probability distribution
-     * in every row. This is the ATN as described here:
+     * in every row. This is the ATM as described here:
      * http://dx.plos.org/10.1371/journal.pone.0017703
      * http://dx.plos.org/10.1371/journal.pone.0017703.g001
      *

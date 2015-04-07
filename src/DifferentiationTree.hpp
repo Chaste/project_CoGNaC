@@ -2,10 +2,14 @@
 #define DIFFERENTIATIONTREE_HPP_
 
 #include "DifferentiationTreeNode.hpp"
+#include "Exception.hpp"
+#include "OutputFileHandler.hpp"
 #include <list>
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 class DifferentiationTree
 {
@@ -183,6 +187,14 @@ public:
      * Print the tree in the console output.
      */
     void printDifferentiationTree() const;
+
+    /**
+     * Save the differentiation tree in a .gml file.
+     *
+     * @param directory the name of the subfolder of testoutput.
+     * @param filename the file name of the output file.
+     */
+    void printDifferentiationTreeToGmlFile(std::string directory, std::string filename) const;
 
     /**
      * Check if this tree and the user_defined_tree are isomorphic.

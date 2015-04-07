@@ -34,7 +34,7 @@ public:
         bdd_init(10000,1000);
         try
         {
-            ThresholdErgodicSetDifferentiationTree TES_tree ("projects/SimoneRubinacci/networks_samples/fission_yeast.net");
+            ThresholdErgodicSetDifferentiationTree TES_tree ("projects/CoGNaC/networks_samples/fission_yeast.net");
 
             TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(),13u);
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
@@ -54,10 +54,10 @@ public:
     void testRandomBooleanNetwork()
     {
         bdd_init(10000,1000);
-        RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/SimoneRubinacci/networks_samples/mammalian.cnet");
+        RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/mammalian.cnet");
 
         delete rbn1;
-        rbn1 = new RandomBooleanNetwork("projects/SimoneRubinacci/networks_samples/mammalian.cnet");
+        rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/mammalian.cnet");
         rbn1->findAttractors();
         rbn1->printNetworkToNetFile("networks_generated", "mammalian_GEN_ATTRACTORS.net");
         rbn1->printNetworkToBooleanNetFile("networks_generated", "mammalian_booleannet_TXT_GEN.txt");
@@ -76,6 +76,7 @@ public:
 
         TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(), 4u);
         DifferentiationTree* Diff_tree = TES_tree.getDifferentiationTree();
+        Diff_tree->printDifferentiationTree();
         TS_ASSERT_EQUALS(Diff_tree->size(), 5u);
         TS_ASSERT_EQUALS(Diff_tree->getLeaves().size(), 4u);
 
@@ -97,14 +98,14 @@ public:
         ThresholdErgodicSetDifferentiationTree* tes_tree;
         DifferentiationTree* differentiation_tree;
         do{
-            if (attempt_number > 0)
+        	if (attempt_number > 0)
             {
-                delete tes_tree;
-                delete differentiation_tree;
+        		delete tes_tree;
+        		delete differentiation_tree;
             }
-
-            tes_tree = new ThresholdErgodicSetDifferentiationTree(10,2,true,.5);
+        	tes_tree = new ThresholdErgodicSetDifferentiationTree(10,2,true,.5);
             differentiation_tree = tes_tree->getDifferentiationTree();
+            differentiation_tree->printDifferentiationTree();
             tree_isomorphism = differentiation_tree->topologyTreeCompare(diff_tree);
             attempt_number++;
         } while (!tree_isomorphism);
@@ -115,12 +116,14 @@ public:
         tes_tree->getBooleanNetwork()->printNetworkToBoolNetFile("networks_generated", "RandomNetwork_Match_GEN.txt");
         delete tes_tree;
         delete differentiation_tree;
+
         bdd_done();
     }
 
     void testThresholdErgodicSetDifferentiationTree()
     {
         /* Matrix taken from Graudenzi et al. http://dx.doi.org/10.1101/000927 */
+    	/*
     	std::vector<std::map<unsigned,double> > stoc_matrix(4);
         stoc_matrix.at(0).insert(std::pair<unsigned,double>(0,0.886));
         stoc_matrix.at(0).insert(std::pair<unsigned,double>(1,0.064));
@@ -139,22 +142,28 @@ public:
         stoc_matrix.at(3).insert(std::pair<unsigned,double>(3,0.891));
 
         ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
-                        std::vector<unsigned>(4,1));
+                        std::vector<unsigned>(4,2));
+        */
+    	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/graudenzi_matrix.dat");
+    	TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","graudenzi_matrix2.dat");
+
 
         DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
 
+        diff_tree->printDifferentiationTree();
         TS_ASSERT_EQUALS(diff_tree->getRoot()->getNumberOfChildren(), 2u);
         TS_ASSERT_EQUALS(diff_tree->getLeaves().size(), 4u);
-        TS_ASSERT_EQUALS(diff_tree->size(), 10u);
+        TS_ASSERT_EQUALS(diff_tree->size(), 7u);
         std::vector<std::set<unsigned> > level_nodes = diff_tree->getLevelNodes();
 
+        diff_tree->printDifferentiationTreeToGmlFile("networks_generated","graudenzi_cell_tree.gml");
         delete diff_tree;
 
         TS_ASSERT_EQUALS(level_nodes.size(), 4u);
         TS_ASSERT_EQUALS(level_nodes.at(0).size(), 1u);
         TS_ASSERT_EQUALS(level_nodes.at(1).size(), 2u);
-        TS_ASSERT_EQUALS(level_nodes.at(2).size(), 3u);
-        TS_ASSERT_EQUALS(level_nodes.at(3).size(), 4u);
+        TS_ASSERT_EQUALS(level_nodes.at(2).size(), 2u);
+        TS_ASSERT_EQUALS(level_nodes.at(3).size(), 2u);
     }
 
     void testFixedTopologyRandomBooleanNetwork() throw (Exception)
@@ -162,7 +171,7 @@ public:
     	bdd_init(10000,1000);
         try
         {
-            RandomBooleanNetwork rbn1("projects/SimoneRubinacci/networks_samples/mammalian_graph.gml", 0.5);
+            RandomBooleanNetwork rbn1("projects/CoGNaC/networks_samples/mammalian_graph.gml", 0.5);
             rbn1.printGraphToGmlFile("networks_generated", "mammalian_graph_FixedTopologyRBN_GEN.gml");
             rbn1.printNetworkToNetFile("networks_generated", "mammalian_graph_FixedTopologyRBN_GEN.net");
         } catch (Exception& e)

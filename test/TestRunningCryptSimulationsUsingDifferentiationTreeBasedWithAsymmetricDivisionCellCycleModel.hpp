@@ -6,40 +6,28 @@
 #include "SmartPointers.hpp"
 #include "AbstractCellBasedTestSuite.hpp"
 
+#include <vector>
+#include <set>
+#include "float.h"
+
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
 #include "DifferentiationTree.hpp"
 #include "DifferentiationTreeNode.hpp"
 #include "DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp"
-
-#include "FixedDurationGenerationBasedCellCycleModel.hpp"
-#include "DifferentiatedCellProliferativeType.hpp"
-#include "CheckReadyToDivideAndPhaseIsUpdated.hpp"
-#include "GeneralisedLinearSpringForce.hpp"
-#include "WildTypeCellMutationState.hpp"
-#include "MeshBasedCellPopulationWithGhostNodes.hpp"
-#include "StemCellProliferativeType.hpp"
-#include "OffLatticeSimulation.hpp"
-#include "VoronoiDataWriter.hpp"
 #include "CellDifferentiationTypeWriter.hpp"
-#include "SloughingCellKiller.hpp"
 
 #include "CellsGenerator.hpp"
-#include "TransitCellProliferativeType.hpp"
-#include "SmartPointers.hpp"
-#include "StochasticDurationCellCycleModel.hpp"
-#include "HoneycombVertexMeshGenerator.hpp"
-#include "CylindricalHoneycombVertexMeshGenerator.hpp"
-#include "VertexBasedCellPopulation.hpp"
-#include "NagaiHondaForce.hpp"
-#include "SimpleTargetAreaModifier.hpp"
-#include "PlaneBoundaryCondition.hpp"
-#include "PlaneBasedCellKiller.hpp"
+#include "StemCellProliferativeType.hpp"
 #include "HoneycombMeshGenerator.hpp"
+#include "FixedDurationGenerationBasedCellCycleModel.hpp"
+#include "MeshBasedCellPopulationWithGhostNodes.hpp"
+#include "OffLatticeSimulation.hpp"
+#include "VoronoiDataWriter.hpp"
+#include "SloughingCellKiller.hpp"
+#include "GeneralisedLinearSpringForce.hpp"
 
 #include "FakePetscSetup.hpp"
-#include <vector>
-#include <set>
-#include "float.h"
+
 
 class BoundaryConditionWidthAndBottom : public AbstractCellPopulationBoundaryCondition<2>
 {
@@ -146,12 +134,13 @@ namespace boost
     }
 }
 
-class TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModelTutorial : public AbstractCellBasedTestSuite
+class TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel : public AbstractCellBasedTestSuite
 {
 public:
 
-    void noTestThresholdErgodicSetDifferentiationTreeFromAnExample()
+    void TestThresholdErgodicSetDifferentiationTreeFromAnExample()
     {
+    	/*
     	std::vector<std::map<unsigned,double> > stoc_matrix(3);
         stoc_matrix.at(0).insert(std::pair<unsigned,double>(0,0.9746));
         stoc_matrix.at(0).insert(std::pair<unsigned,double>(1,0.0246));
@@ -170,6 +159,9 @@ public:
 
         ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
         		attractor_lengths);
+        */
+    	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/fig4_atn.dat");
+
         DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
 
         //Assert topological properties of the tree.
@@ -199,7 +191,7 @@ public:
         delete diff_tree;
     }
 
-    void noTestBoundaryConditionWidthAndBottom() throw(Exception)
+    void TestBoundaryConditionWidthAndBottom() throw(Exception)
     {
         HoneycombMeshGenerator generator(25, 4);
         MutableMesh<2,2>* p_mesh = generator.GetMesh();
@@ -232,7 +224,7 @@ public:
     void noTestSimulationWithBoundaries()
 	{
     	//RandomNumberGenerator::Instance()->Reseed(time(NULL));
-
+    	/*
 		std::vector<std::map<unsigned,double> > stoc_matrix(3);
 		stoc_matrix.at(0).insert(std::pair<unsigned,double>(0,0.9746));
 		stoc_matrix.at(0).insert(std::pair<unsigned,double>(1,0.0246));
@@ -251,7 +243,12 @@ public:
 
 		ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
 						attractor_lengths);
+		*/
+    	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/fig4_atn.dat");
+
 		DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
+		diff_tree->printDifferentiationTreeToGmlFile("networks_generated","fig4_differentiation_tree.gml");
+
 		markLessProbableWithBlackColour(diff_tree);
 		diff_tree->normaliseLength(8.0);
 		HoneycombMeshGenerator generator(20, 20, 4);
@@ -299,6 +296,7 @@ public:
 
 		simulator.Solve();
 		delete diff_tree;
+
 	}
 
     void markLessProbableWithBlackColour(DifferentiationTree* diff_tree)
@@ -339,13 +337,12 @@ public:
     	}
     }
 
-    void TestFig2()
+    void noTestGenerateFig2()
     {
         DifferentiationTree* tree = new DifferentiationTree(4);
         tree->addNewChild(0,4);
         tree->addNewChild(0,4);
 
-        //tree->normaliseLength(.8);
         tree->colorise();
 
 
@@ -378,7 +375,6 @@ public:
         simulator.SetEndTime(16.0);
 
         MAKE_PTR(GeneralisedLinearSpringForce<2>, p_linear_force);
-        //p_linear_force->SetCutOffLength(1.5);
         simulator.AddForce(p_linear_force);
 
         simulator.Solve();

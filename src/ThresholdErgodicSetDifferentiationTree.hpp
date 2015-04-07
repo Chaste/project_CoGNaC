@@ -6,6 +6,7 @@
 #include <set>
 #include "DifferentiationTree.hpp"
 #include "RandomBooleanNetwork.hpp"
+#include "Exception.hpp"
 #include "LinearSystem.hpp"
 #include "PetscTools.hpp"
 #include "PetscVecTools.hpp"
@@ -222,6 +223,15 @@ public:
      * @return a pointer to a new DifferentiationTree,.
      */
     DifferentiationTree* getDifferentiationTree() const;
+
+    /**
+	 * Save the stochastic matrix and the lengths of the attractors in a .dat file.
+	 *
+	 * @param directory the name of the subfolder of testoutput.
+	 * @param filename the file name of the output file.
+     */
+    void printStochasticMatrixAndAttractorLengthsToDatFile(std::string directory, std::string filename) const;
+
 };
 
 #endif /* THRESHOLDERGODICSETDIFFERENTIATIONTREE_HPP_ */

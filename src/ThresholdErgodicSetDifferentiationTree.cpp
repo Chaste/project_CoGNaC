@@ -1,6 +1,8 @@
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
 #include <limits>
 #include <iostream>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 
 ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(
         std::vector<std::map<unsigned,double> > stochastic_matrix,
@@ -25,6 +27,7 @@ ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(u
 
 ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(std::string file_path, double probability_canalyzing_function)
 {
+
     mpBooleanNetwork = new RandomBooleanNetwork(file_path, probability_canalyzing_function);
     mpBooleanNetwork->findAttractors();
     mStochasticMatrix = mpBooleanNetwork->getAttractorMatrix();
@@ -33,10 +36,89 @@ ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(s
 
 ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(std::string file_path)
 {
-    mpBooleanNetwork = new RandomBooleanNetwork(file_path);
-    mpBooleanNetwork->findAttractors();
-    mStochasticMatrix = mpBooleanNetwork->getAttractorMatrix();
-    mAttractorLength = mpBooleanNetwork->getAttractorLength();
+	std::cout.flush();
+	if (file_path.size() > 4)
+	{
+		try {
+			if (file_path.compare(file_path.size()-4,4,".net") == 0
+					||  file_path.compare(file_path.size()-4,4,"cnet") == 0)
+			{
+				mpBooleanNetwork = new RandomBooleanNetwork(file_path);
+				mpBooleanNetwork->findAttractors();
+				mStochasticMatrix = mpBooleanNetwork->getAttractorMatrix();
+				mAttractorLength = mpBooleanNetwork->getAttractorLength();
+			}
+			else if (file_path.compare(file_path.size()-4,4,".dat") == 0)
+			{
+				std::vector<std::map<unsigned,double> > matrix;
+				std::vector<unsigned> attractor_length;
+
+			    std::vector<std::string> strs;
+				std::string line;
+				std::ifstream input_file (file_path.c_str());
+				try
+				{
+					if (!input_file.is_open()) EXCEPTION("Not able to open the file.");
+					unsigned matrix_length = 0;
+					if (!std::getline(input_file,line)) throw;
+					boost::algorithm::trim(line);
+					boost::algorithm::to_lower(line);
+					boost::split(strs, line, boost::is_any_of(","), boost::algorithm::token_compress_on);
+					matrix_length = strs.size();
+					if (strs.size() != 0)
+					{
+						double value = 0.0;
+						unsigned i=0;
+						do {
+							if (i!=0)
+							{
+								if (!std::getline(input_file,line)) throw;
+								boost::algorithm::trim(line);
+								boost::algorithm::to_lower(line);
+								boost::split(strs, line, boost::is_any_of(","), boost::algorithm::token_compress_on);
+								if (strs.size() != matrix_length) throw;
+							}
+							unsigned j=0;
+							std::map<unsigned,double> map;
+							matrix.push_back(map);
+							do {
+								value = boost::lexical_cast<double>(strs.at(j));
+								if (value != 0.0)
+								{
+									matrix.at(i).insert(std::pair<unsigned,double>(j,value));
+								}
+								j++;
+							} while (j < matrix_length);
+							i++;
+						} while (i < matrix_length);
+					} else throw;
+					if (!std::getline(input_file,line)) throw;
+					boost::algorithm::trim(line);
+					if (!line.empty()) throw;
+					if (!std::getline(input_file,line)) throw;
+					boost::algorithm::trim(line);
+					boost::algorithm::to_lower(line);
+					boost::split(strs, line, boost::is_any_of(","), boost::algorithm::token_compress_on);
+					if (strs.size() != matrix_length) throw;
+					unsigned j=0;
+					do {
+						attractor_length.push_back(boost::lexical_cast<unsigned>(strs.at(j)));
+						j++;
+					} while (j < matrix_length);
+					mStochasticMatrix = matrix;
+					mAttractorLength = attractor_length;
+					mpBooleanNetwork = NULL;
+				} catch (const Exception&)
+				{
+					input_file.close();
+					throw;
+				}
+		} else EXCEPTION("File format is not correct.");
+		} catch (Exception& e)
+		{
+			EXCEPTION("Error reading the file.");
+		}
+	} else EXCEPTION("Error in the file path.");
 }
 
 
@@ -67,56 +149,50 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
             for (it_nodes = it_components->begin(); it_nodes!=it_components->end(); ++it_nodes)
             {
                 component[*it_nodes] = counter_set;
-                std::cout<< *it_nodes << " -> scc: " << counter_set << "\n ";
             }
             counter_set++;
         }
+
         bool isTes = isThresholdErgodicSet(current_stochastic_matrix, component);
         if (step==0)
         {
-            if (strongly_connected_components.size() == 1)
-            {
-                std::set<unsigned> component_states(*strongly_connected_components.begin());
-                std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-                double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-                differentiation_tree = new DifferentiationTree(cell_cycle_length, component_states, stationary_distribution);
-                number_of_previous_components = 1;
-            }
-            else
-            {
-                //we create a "false root".
-                if (isTes)
-                {
-                    std::set<unsigned> component_states;
-                    for (unsigned i=0; i<mStochasticMatrix.size(); i++)
-                    {
-                        component_states.insert(i);
-                    }
-                    std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-                    double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-                    differentiation_tree = new DifferentiationTree(cell_cycle_length, component_states, stationary_distribution);
-                    for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
-                    {
-                        std::set<unsigned> component_states(*it_components);
-                        unsigned parent = differentiation_tree->searchParentNode(component_states);
-                        if (parent < differentiation_tree->size())
-                        {
-                            //std::set<unsigned> component_states(*strongly_connected_components.begin());
-                            std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-                            double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-                            differentiation_tree->addNewChild(parent, cell_cycle_length,
-                                    component_states, stationary_distribution);
-                        }
-                    }
-                    number_of_previous_components = strongly_connected_components.size();
-                }
-            }
-        }
+			if (isTes)
+			{
+				std::set<unsigned> component_states;
+				for (unsigned i=0; i<mStochasticMatrix.size(); i++)
+				{
+					component_states.insert(i);
+				}
+				std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
+				double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
+				differentiation_tree = new DifferentiationTree(cell_cycle_length, component_states, stationary_distribution);
+
+				number_of_previous_components = 1;
+				if (strongly_connected_components.size() > 1)
+				{
+
+					for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
+					{
+						std::set<unsigned> component_states(*it_components);
+						unsigned parent = differentiation_tree->searchParentNode(component_states);
+						if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
+						{
+							//std::set<unsigned> component_states(*strongly_connected_components.begin());
+							std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
+							double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
+							differentiation_tree->addNewChild(parent, cell_cycle_length,
+									component_states, stationary_distribution);
+						}
+					}
+				}
+
+			}
+		}
         else
         {
-            if (isTes && number_of_previous_components != strongly_connected_components.size())
+            if (number_of_previous_components != strongly_connected_components.size())
             {
-                if (number_of_previous_components == 0)
+                if (isTes && number_of_previous_components == 0)
                 {
                     std::set<unsigned> component_states;
                     for (unsigned i=0; i<mStochasticMatrix.size(); i++)
@@ -129,17 +205,19 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
                 }
                 else
                 {
+                	unsigned i=1;
                     for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
                     {
                         std::set<unsigned> component_states(*it_components);
                         unsigned parent = differentiation_tree->searchParentNode(component_states);
-                        if (parent < differentiation_tree->size())
+                        if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
                         {
                             //std::set<unsigned> component_states(*strongly_connected_components.begin());
                             std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
                             double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
                             differentiation_tree->addNewChild(parent, cell_cycle_length, component_states, stationary_distribution);
                         }
+                        i++;
                     }
                 }
                 number_of_previous_components = strongly_connected_components.size();
@@ -153,6 +231,22 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
             {
                 thresholds.erase(thresholds.begin());
                 current_stochastic_matrix = getPrunedMatrix(threshold);
+                bool rows_equals_to_zero = false;
+                for (unsigned row=0; row< current_stochastic_matrix.size() && !rows_equals_to_zero; row++)
+				{
+                	double row_sum = 0;
+					std::map<unsigned,double>::iterator iterator;
+					rows_equals_to_zero = current_stochastic_matrix.at(row).empty();
+					for (iterator=current_stochastic_matrix.at(row).begin(); iterator!=current_stochastic_matrix.at(row).end() && !rows_equals_to_zero; ++iterator)
+					{
+						row_sum += iterator->second;
+					}
+					if (row_sum < 0.99)
+					{
+						rows_equals_to_zero = true;
+					}
+				}
+                thresholds_ended = rows_equals_to_zero;
             } else	thresholds_ended = true;
         }
         else
@@ -160,7 +254,7 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
             thresholds_ended = true;
         }
         step++;
-    } while(!thresholds_ended && number_of_previous_components!=mStochasticMatrix.size());
+    } while(!thresholds_ended /*&& number_of_previous_components!=mStochasticMatrix.size()*/);
     return differentiation_tree;
 }
 
@@ -212,7 +306,7 @@ void ThresholdErgodicSetDifferentiationTree::normalizePrunedMatrix(
         }
         if (row_sum == 0)
         {
-            matrix.at(row)[row] = 1.0; //using [] notation we don't care about previous existing elements.
+            //matrix.at(row)[row] = 1.0; //using [] notation we don't care about previous existing elements.
         } else
         {
             for (iterator=matrix.at(row).begin(); iterator!=matrix.at(row).end(); ++iterator)
@@ -228,7 +322,7 @@ bool ThresholdErgodicSetDifferentiationTree::isThresholdErgodicSet(
         const unsigned* component
         ) const
 {
-    bool components_connected = false;
+    bool components_connected = false;/*
     for(unsigned row = 0; row < matrix.size() && !components_connected; row++)
     {
         std::map<unsigned,double>::iterator iterator;
@@ -239,9 +333,10 @@ bool ThresholdErgodicSetDifferentiationTree::isThresholdErgodicSet(
                 components_connected = true;
             }
         }
-    }
+    }*/
     return !components_connected;
 }
+
 std::set<std::set<unsigned> > ThresholdErgodicSetDifferentiationTree::getStronglyConnectedComponents(
         std::vector<std::map<unsigned,double> > graph) const
 {
@@ -296,14 +391,33 @@ std::set<std::set<unsigned> > ThresholdErgodicSetDifferentiationTree::getTermina
     }
     delete[] used;
     delete[] lowlink;
-/*
 
-    std::set<unsigned>::iterator component;
-    for (component = components.begin(); component != components.end(); ++component)
+    std::set<std::set<unsigned> >::iterator it_components;
+    std::set<unsigned>::iterator it_nodes;
+    for (it_components = components.begin(); it_components != components.end(); ++it_components)
     {
+    	bool is_a_terminal_scc = true;
 
+    	for (it_nodes = it_components->begin(); it_nodes != it_components->end() && is_a_terminal_scc; ++it_nodes)
+		{
+    		std::map<unsigned,double> map = graph[*it_nodes];
+    		std::map<unsigned,double>::iterator it_map;
+
+    		for(it_map = map.begin();it_map!=map.end() && is_a_terminal_scc; ++it_map)
+    		{
+    			//each reachable node from a member of a terminal scc must be a member of the terminal scc
+    			if (it_components->find(it_map->first) == it_components->end())
+    			{
+    				is_a_terminal_scc = false;
+    			}
+    		}
+		}
+    	if (!is_a_terminal_scc)
+    	{
+    		components.erase(*it_components);
+    	}
     }
-*/
+
     return components;
 }
 
@@ -453,4 +567,48 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::getDifferentiationT
     differentiation_tree->colorise();
 
     return differentiation_tree;
+}
+
+void ThresholdErgodicSetDifferentiationTree::printStochasticMatrixAndAttractorLengthsToDatFile(
+		std::string directory, std::string filename) const
+{
+	if (directory.empty())
+		EXCEPTION("Directory name not valid.");
+
+	if (filename.size() < 5 || filename.compare(filename.size()-4,4,".dat") != 0)
+		EXCEPTION("File path not valid. It must terminate with '.dat' extension.");
+
+	OutputFileHandler handler(directory,false);
+	out_stream p_file = handler.OpenOutputFile(filename);
+
+	for (unsigned row=0; row<mStochasticMatrix.size();row++)
+	{
+		unsigned col=0;
+        std::map<unsigned,double>::const_iterator iterator;
+        for (iterator=mStochasticMatrix.at(row).begin(); iterator!=mStochasticMatrix.at(row).end(); ++iterator)
+        {
+			for (;col<iterator->first;col++)
+			{
+				if (col!=0) *p_file << ",";
+				*p_file << 0.0;
+			}
+			if (col!=0) *p_file << ",";
+			*p_file << iterator->second;
+			col++;
+		}
+		for (;col<mStochasticMatrix.size();col++)
+		{
+			if (col!=0) *p_file << ",";
+			*p_file << 0.0;
+		}
+		*p_file << "\n";
+	}
+	*p_file << "\n";
+	for (unsigned i=0; i<mAttractorLength.size(); i++)
+	{
+		if (i!=0) *p_file << ",";
+		*p_file << mAttractorLength.at(i);
+	}
+	*p_file << "\n";
+	p_file->close();
 }

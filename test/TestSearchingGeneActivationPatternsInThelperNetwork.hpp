@@ -21,7 +21,7 @@ public:
         bdd_init(10000,1000);
         try
         {
-        	RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/SimoneRubinacci/networks_samples/thelper.cnet");
+        	RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/thelper.cnet");
             rbn1->findAttractors();
 
             std::vector<std::map<unsigned,double> >  atn = rbn1->getAttractorMatrix();
@@ -40,7 +40,8 @@ public:
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
             DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
             diff_tree->printDifferentiationTree();
-
+            diff_tree->printDifferentiationTreeToGmlFile("networks_generated", "diff_tree.gml");
+            TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix.dat");
         }
         catch (Exception& e)
         {
@@ -49,7 +50,8 @@ public:
         }
         bdd_done();
     }
-    void testpippolo()
+
+    void testMatrixWithSwitches()
     {
     	std::vector<std::map<unsigned,double> > stoc_matrix(3);
         stoc_matrix.at(0).insert(std::pair<unsigned,double>(2,1));
@@ -64,6 +66,16 @@ public:
 
         delete diff_tree;
     }
+
+    void testMatrixFromFile()
+	{
+    	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/matrix.dat");
+    	TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix_prova.dat");
+    	DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
+		diff_tree->printDifferentiationTree();
+		diff_tree->printDifferentiationTreeToGmlFile("networks_generated","diff_tree.gml");
+        delete diff_tree;
+	}
 };
 
 

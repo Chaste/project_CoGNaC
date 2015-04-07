@@ -2,27 +2,19 @@
 
 Welcome to CoGNaC.
 
+Designed only to work as bolt-on project for Chaste v3.2 or v3.3
 
-Designed only to work as bolt-on project for Chaste v3.2
+This section contains pages generated automatically from the source code accompanying "Cellular cardiac electrophysiology modelling with Chaste and CellML".
 
-TODO Cite references here.
+== Getting the code and installing dependencies ==
 
-== Sample commands to install and run everything ==
+Before running these examples you will need to [wiki:InstallGuides/InstallGuide install Chaste's dependencies] and the [http://www.cs.ox.ac.uk/chaste/download.html source code for version 3.3].
+The easiest way to do this is using an Ubuntu machine (or an Ubuntu virtual machine) as discussed on [wiki:InstallGuides/UbuntuPackage]. 
+Note that Chaste is only fully supported on !Linux/Unix systems, so users of Windows or Mac OS X may need to follow the virtual machine route.
+For manual installation of each dependency, on any version of Linux, see DeveloperInstallGuide.
 
-Before running this simulation you will need to [wiki:InstallGuides/InstallGuide install Chaste's dependencies].
-The easiest way to do this is using an Ubuntu machine (or an Ubuntu virtual machine) as discussed on InstallGuides/UbuntuPackage.
-
-You will also need the Chaste source code for this project. It is available from the [http://www.cs.ox.ac.uk/chaste/download.html main Chaste download page] as extensions to Chaste release 3.2 under the projects heading, or you can [wiki:ChasteGuides/AccessCodeRepository access the source code direct from our repository].
+You will also need the source for the CoGNaC project. It is available from the [http://www.cs.ox.ac.uk/chaste/download.html main Chaste download page] as extension to Chaste release 3.3 under the "Bolt-on projects" heading.
 Move the project in Chaste/projects where 'Chaste' is the folder containing the Chaste source code.
-
-For the latter option, using a command-line subversion client, you can get the required code in a new folder called 'Chaste' with the commands:
-{{{
-#!sh
-svn --username anonymous checkout https://chaste.cs.ox.ac.uk/svn/chaste/tags/release_3.2 Chaste
-cd Chaste/projects
-svn checkout https://chaste.cs.ox.ac.uk/svn/chaste/projects/[Add project name here]
-}}}
-Use your email address as the password for the 'anonymous' account.
 
 Once you have checked out the project you need to install [http://buddy.sourceforge.net/manual/main.html BuDDy] tool, you may do so from the command line as follows:
 {{{
@@ -40,44 +32,59 @@ scons
  Running infrastructure tests...
 }}}
 
-So, in the file you are using (e.g. python/hostconfig/ubuntu.py), just add 'bdd' similar to:
+So, in the file you are using (e.g. `python/hostconfig/ubuntu.py`), just add 'bdd' similar to:
 {{{
 other_libraries = boost_libs + ['xerces-c',
                                 'hdf5', 'z',
                                 'parmetis', 'metis', 'bdd']
 }}}
 
-Now the project should be installed, and everything should run correctly. In order to
-test if everything is installed correctly, you can run some test, so
-from a command line do:
+Now the project should be installed, and everything should compile and run correctly. In order to
+test if everything is installed correctly, you can run some tests. So from a command line do:
 {{{
-scons test\_suite=projects/[Add a project name here]/test/TestArrayDirectedGraph.hpp
-scons test\_suite=projects/[Add a project name here]/test/TestRandomBooleanNetwork.hpp
-scons test\_suite=projects/[Add a project name here]/test/TestDifferentiationTree.hpp
-scons test\_suite=projects/[Add a project name here]/test/TestDifferentiationTreeBasedCellCycleModel.hpp
+cd <Chaste3.2 path>
+scons test_suite=projects/CoGNaC/test/TestArrayDirectedGraph.hpp
 }}}
 
-If each test run is passed, you can start run some tutorial, or create your own test suites.
-
-== How to compile and run tests ==
-
-To run the test and simulations, use:
 {{{
-cd path/to/Chaste
-scons test_suite=projects/[Add project name here]/test/TEST\_CLASS\_NAME.hpp
+cd <Chaste3.3 path>
+scons test_suite=projects/CoGNaC/test/TestDifferentiationTree.hpp
 }}}
 
-There are seven test suites in the projects:
-TestDifferentiationTree.hpp - for testing DifferentiationTree class.
-TestDifferentiationTreeBasedCellCycleModel.hpp - for testing the DifferentiationTreeBasedCellCycelModel class.
-TestRandomBooleanNetwork.hpp - for testing the RandomBooleanNetwork class.
-TestArrayDirectedGraph.hpp - for testing ArrayDirectedGraph and GraphNode classes.
+{{{
+cd <Chaste3.3 path>
+scons test_suite=projects/CoGNaC/test/TestRandomBooleanNetwork.hpp
+}}}
 
-TestCryptBasedSimulationsUsingDifferentiationTreeCellCycleModel.hpp - crypt simulations using DifferentiationTreeBasedCellCycelModel.
-TestPottsBasedSimulationsUsingDifferentiationTreeCellCycleModel.hpp - CPM simulations using DifferentiationTreeBasedCellCycelModel.
-TestWntDependentCryptUsingDifferentiationTreeCellCycleModel.hpp - Wnt dependent simulations using DifferentiationTreeBasedCellCycelModel.
+If each test run is passed, you can run some tutorials, or create your own test suites.
 
-'''NB''': Note that the code for simulations ''will not work'' with Chaste release 3.1 or earlier.
+== Documentation ==
+There are three folders - `networks_samples`, `src` and `test`.
+
+ 1. The `networks_samples` folder contains networks and matrices used during simulations.
+ 1. The `src` folder contains the following classes:
+  * `ArrayDirectedGraph.hpp`, `GraphNode.hpp` - these classese model a directed graph.
+  * `RandomBooleanNetwork.hpp` - this class is used for the generation of a RBN and attractor search.
+  * `ThresholdErgodicSetDifferentiationTree.hpp` - this class generates an ATN and a 'DifferentiationTree' from a RBN.
+  * `DifferentiationTree.hpp`, `DifferentiationTreeNode.cpp` - these classes are used to represent a cellular differentiation tree.
+  * `DifferentiationTreeBasedCellCycleModel.hpp`, `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.cpp` - for the representation of a cell cycle model which use the information contained in a 'DifferentiationTree'. They performs stochastic differentiation. The second class perfroms stem cells asymmetric division.
+ 1. The `test` folder contains:
+  * [wiki:PaperTutorials/CoGNaC/test/TestArrayDirectedGraph.hpp] - for testing ArrayDirectedGraph class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestDifferentiationTree.hpp] - for testing DifferentiationTree class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestTestGraphNode.hpp] - for testing GraphNode class.
+  * [wiki:PaperTutorials/CoGNaC/test/TestRandomBooleanNetwork.hpp] - for testing RandomBooleanNetwork class and the Buddy dependency..
+  * [wiki:PaperTutorials/CoGNaC/test/TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - This file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
+  * [wiki:PaperTutorials/CoGNaC/test/TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModelTutorial.hpp] - This file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree, and in Figure 5 showing crypt simulations.
+  
+== Run tests ==
+You can then run tests and simulations with, for example,
+{{{
+cd <Chaste3.3 path>
+scons test_suite=projects/CoGNaC/test/TestSearchingGeneActivationPatternsInThelperNetwork.hpp
+}}}
+
+----
+'''NB''': the paper was developed with release version 3.2 and 3.3. We have not tested the compatibility with release version 3.1 or under.
 
 For further information on using Chaste, see [wiki:ChasteGuides extensive guide material].
 You may also wish to look at some of the [wiki:UserTutorials basic user tutorials].
