@@ -61,18 +61,21 @@ There are three folders - `networks_samples`, `src` and `test`.
   * `DifferentiationTree.hpp`, `DifferentiationTreeNode.hpp` - used to represent a cellular differentiation tree.
   * `DifferentiationTreeBasedCellCycleModel.hpp`, `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` - used for the representation of a cell cycle model, using the information contained in a `DifferentiationTree` object and performing stochastic differentiation. In addition `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` implements stem cells asymmetric division.
  1. The `test` folder contains:
-  * [wiki:PaperTutorials/CoGNaC/test/TestArrayDirectedGraph TestArryDirectedGraph.hpp] - for testing ArrayDirectedGraph class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestDifferentiationTree TestDifferentiationTree.hpp] - for testing DifferentiationTree class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestGraphNode TestGraphNode.hpp] - for testing GraphNode class.
-  * [wiki:PaperTutorials/CoGNaC/test/TestRandomBooleanNetwork TestGraphNode.hpp] - for testing RandomBooleanNetwork class and the Buddy dependency..
-  * [wiki:PaperTutorials/CoGNaC/test/GeneActivationPatternsInThelperCellDifferentiation TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - This file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
-  * [wiki:PaperTutorials/CoGNaC/test/CancerCellColonizationOfAColonCrypt TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp] - This file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree. It can also generate the crypt simulations shown in Figure 5.
+  * [wiki:PaperTutorials/CoGNaC/TestArrayDirectedGraph TestArryDirectedGraph.hpp] - testing `ArrayDirectedGraph.hpp` class.
+  * [wiki:PaperTutorials/CoGNaC/TestDifferentiationTree TestDifferentiationTree.hpp] - testing `DifferentiationTree.hpp` class.
+  * [wiki:PaperTutorials/CoGNaC/TestGraphNode TestGraphNode.hpp] - testing `GraphNode.hpp` class.
+  * [wiki:PaperTutorials/CoGNaC/TestRandomBooleanNetwork TestGraphNode.hpp] - testing `RandomBooleanNetwork.hpp` class and the Buddy dependency..
+  * [wiki:PaperTutorials/CoGNaC/GeneActivationPatternsInThelperCellDifferentiation TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - this file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
+  * [wiki:PaperTutorials/CoGNaC/CancerCellColonizationOfAColonCrypt TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp] - this file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree. It can also generate the crypt simulations shown in Figure 5.
   
-== Run tests ==
+== Running tests ==
 You can then run tests and simulations with, for example,
 {{{
 cd <Chaste3.3 path>
 scons test_suite=projects/CoGNaC/test/TestSearchingGeneActivationPatternsInThelperNetwork.hpp
+}}}
+or
+{{{
 scons test_suite=projects/CoGNaC/test/TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp
 }}}
 

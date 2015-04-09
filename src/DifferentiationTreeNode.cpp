@@ -3,31 +3,46 @@
 #include <cassert>
 
 DifferentiationTreeNode::DifferentiationTreeNode() :
-mColour (0.0),
+mThreshold(1.0),
+mColour(0.0),
 mCellCycleLength(0.0),
 mParent(0)
 {
 }
 
 DifferentiationTreeNode::DifferentiationTreeNode(double cell_cycle_length) :
-mColour (0.0),
+mThreshold(1.0),
+mColour(0.0),
 mCellCycleLength(cell_cycle_length),
 mParent(0)
 {
     if (mCellCycleLength < 0.0) EXCEPTION("Cell cycle length must be non-negative.");
 }
 
+DifferentiationTreeNode::DifferentiationTreeNode(std::set<unsigned> component) :
+mThreshold(1.0),
+mColour(0.0),
+mCellCycleLength(0.0),
+mParent(0),
+mComponentStates(component)
+{
+
+}
+
 DifferentiationTreeNode::DifferentiationTreeNode(double cell_cycle_length,
-            std::set<unsigned> component_states, std::vector<double> stationary_distribution) :
-mColour (0.0),
+            std::set<unsigned> component_states, std::vector<double> stationary_distribution,
+			std::vector<double> differentiation_probability) :
+mThreshold(1.0),
+mColour(0.0),
 mCellCycleLength(cell_cycle_length),
 mParent(0),
 mComponentStates(component_states),
-mStationaryDistribution(stationary_distribution)
+mStationaryDistribution(stationary_distribution),
+mDifferentiationProbability(differentiation_probability)
 {
     if (mCellCycleLength < 0.0) EXCEPTION("Cell cycle length must be non-negative.");
     if (mStationaryDistribution.size() != mComponentStates.size())
-        EXCEPTION("Number of components must be equal to the size of the vector of probabilities.");
+        EXCEPTION("Number of components must be greater or equal to the size of the probabilities vector.");
 }
 
 DifferentiationTreeNode::~DifferentiationTreeNode()
@@ -56,6 +71,12 @@ bool DifferentiationTreeNode::isLeaf() const
 {
     return (mChildren.size() == 0);
 }
+
+double DifferentiationTreeNode::getThreshold() const
+{
+	return mThreshold;
+}
+
 unsigned DifferentiationTreeNode::getNumberOfComponentStates() const
 {
     return mComponentStates.size();
@@ -93,9 +114,25 @@ std::vector<double> DifferentiationTreeNode::getStationaryDistribution() const
     return mStationaryDistribution;
 }
 
+std::vector<double> DifferentiationTreeNode::getDifferentiationProbability() const
+{
+    return mDifferentiationProbability;
+}
+
 void DifferentiationTreeNode::setStationaryDistribution(std::vector<double> distribution)
 {
     mStationaryDistribution = distribution;
+}
+
+void DifferentiationTreeNode::setDifferentiationProbability(std::vector<double> distribution)
+{
+	mDifferentiationProbability = distribution;
+}
+
+void DifferentiationTreeNode::setThreshold(double threshold)
+{
+	assert(threshold >= 0.0 && threshold <= 1.0);
+	mThreshold = threshold;
 }
 
 void DifferentiationTreeNode::setColour(double colour)

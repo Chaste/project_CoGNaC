@@ -2,7 +2,8 @@
 #include <cassert>
 #include <math.h>
 
-DifferentiationTree::DifferentiationTree()
+DifferentiationTree::DifferentiationTree() :
+mFakeRoot(false)
 {
     mVertices.push_back(new DifferentiationTreeNode());
     mLevelNodes.push_back(std::set<unsigned>());
@@ -11,7 +12,8 @@ DifferentiationTree::DifferentiationTree()
     mNodesLevel.push_back(0);
 }
 
-DifferentiationTree::DifferentiationTree(double cell_cycle_length)
+DifferentiationTree::DifferentiationTree(double cell_cycle_length) :
+mFakeRoot(false)
 {
     assert(cell_cycle_length > 0.0);
 
@@ -25,10 +27,25 @@ DifferentiationTree::DifferentiationTree(double cell_cycle_length)
 }
 
 DifferentiationTree::DifferentiationTree(
+		std::set<unsigned> component
+		) :
+mFakeRoot(false)
+{
+	mVertices.push_back(
+			new DifferentiationTreeNode(component));
+    mLevelNodes.push_back(std::set<unsigned>());
+	mLevelNodes.at(0).insert(0);
+	mLeaves.insert(0);
+	mNodesLevel.push_back(0);
+}
+
+DifferentiationTree::DifferentiationTree(
         double cell_cycle_length,
         std::set<unsigned> component_states,
-        std::vector<double> stationary_distribution
-        )
+        std::vector<double> stationary_distribution,
+        std::vector<double> differentiation_probability
+        ) :
+mFakeRoot(false)
 {
     assert(cell_cycle_length > 0.0);
 
@@ -36,7 +53,8 @@ DifferentiationTree::DifferentiationTree(
             new DifferentiationTreeNode(
                     cell_cycle_length,
                     component_states,
-                    stationary_distribution));
+                    stationary_distribution,
+					differentiation_probability));
     mLevelNodes.push_back(std::set<unsigned>());
     mLevelNodes.at(0).insert(0);
     mLeaves.insert(0);
@@ -289,11 +307,19 @@ void DifferentiationTree::addNewChild(unsigned parent, double cell_cycle_length)
     addChild(parent, node);
 }
 
+void DifferentiationTree::addNewChild(unsigned parent, std::set<unsigned> component)
+{
+    assert(parent < mVertices.size());
+    DifferentiationTreeNode* node = new DifferentiationTreeNode(component);
+    addChild(parent, node);
+}
+
 void DifferentiationTree::addNewChild(
         unsigned parent,
         double cell_cycle_length,
         std::set<unsigned> component_states,
-        std::vector<double> stationary_distribution
+        std::vector<double> stationary_distribution,
+        std::vector<double> differentiation_probability
         )
 {
     assert(parent < mVertices.size());
@@ -303,7 +329,8 @@ void DifferentiationTree::addNewChild(
             new DifferentiationTreeNode(
                     cell_cycle_length,
                     component_states,
-                    stationary_distribution);
+                    stationary_distribution,
+					differentiation_probability);
 
 	std::set<unsigned> parent_component_states = mVertices.at(parent)->getComponentStates();
 	std::set<unsigned> child_component_states = node->getComponentStates();
@@ -421,13 +448,22 @@ void DifferentiationTree::printDifferentiationTree() const
         std::set<unsigned>::iterator iterator;
         std::cout << "- ID: " << i << ", parent: " <<
                 mVertices.at(i)->getParent() << ", with " <<
-                mVertices.at(i)->getNumberOfChildren() << " children.\n";
+                mVertices.at(i)->getNumberOfChildren() << " children, threshold " <<
+				mVertices.at(i)->getThreshold() << " and cell cycle length " <<
+				mVertices.at(i)->getCellCycleLength() <<"\n";
         std::cout << "---states (set): {";
         std::set<unsigned> states = mVertices.at(i)->getComponentStates();
         for (iterator=states.begin(); iterator!=states.end(); ++iterator)
         {
             std::cout << " " << *iterator << " ";
         }
+        std::cout << "}\n";
+        std::cout << "---probabilities (set): {";
+        std::vector<double> probabilities = mVertices.at(i)->getDifferentiationProbability();
+        for (unsigned j=0; j<probabilities.size(); ++j)
+		{
+        	std::cout << " " << probabilities.at(j) << " ";
+		}
         std::cout << "}\n";
     }
 }
@@ -476,7 +512,7 @@ void DifferentiationTree::printDifferentiationTreeToGmlFile(std::string director
     	if (mVertices.at(i)->getChildren().size() > 0)
     	{
     	    std::vector<unsigned> children = mVertices.at(i)->getChildren();
-    	    std::vector<double> probabilities = mVertices.at(i)->getStationaryDistribution();
+    	    std::vector<double> probabilities = mVertices.at(i)->getDifferentiationProbability();
     	    for (unsigned j=0; j<children.size(); j++)
     	    {
     		*p_file << " edge [\n";
@@ -560,4 +596,39 @@ const DifferentiationTreeNode* DifferentiationTree::getNode(unsigned node_id) co
 
 unsigned DifferentiationTree::size() const{
     return mVertices.size();
+}
+
+bool DifferentiationTree::hasFakeRoot() const
+{
+	return mFakeRoot;
+}
+
+void DifferentiationTree::setFakeRoot(bool fake_root)
+{
+	mFakeRoot = fake_root;
+}
+
+void DifferentiationTree::setThreshold(unsigned node_id, double threshold)
+{
+	assert(node_id < mVertices.size());
+	mVertices.at(node_id)->setThreshold(threshold);
+}
+
+void DifferentiationTree::setStationaryDistributionAndCellCycleLength(
+		unsigned node_id,
+		std::vector<double> stationary_distribution,
+		double cell_cycle_length
+		)
+{
+	assert(node_id < mVertices.size());
+	mVertices.at(node_id)->setStationaryDistribution(stationary_distribution);
+	mVertices.at(node_id)->setCellCycleLength(cell_cycle_length);
+}
+
+void DifferentiationTree::setDifferentiationProbability(
+		unsigned node_id,
+		std::vector<double> differentiation_probability)
+{
+	assert(node_id < mVertices.size());
+	mVertices.at(node_id)->setDifferentiationProbability(differentiation_probability);
 }

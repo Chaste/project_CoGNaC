@@ -1,42 +1,72 @@
 #ifndef TESTRANDOMBOOLEANNETWORKGENERATOR_HPP_
 #define TESTRANDOMBOOLEANNETWORK_HPP_
 
-#include <cxxtest/TestSuite.h>
-#include "CheckpointArchiveTypes.hpp"
-#include "SmartPointers.hpp"
+/*
+ * = Testing the classes {{{RandomBooleanNetwork}}} and {{{ThresholdErgodicSetDifferentiationTree}}} =
+ * This class is used to test that the classes {{{RandomBooleanNetwork}}} and {{{ThresholdErgodicSetDifferentiationTree}}} are implemented correctly.
+ * It is also used to check that Buddy bdd tool is imported correctly.
+ *
+ * === Including header files ===
+ * We begin by including the necessary header files.
+*/
 
-#include <bdd.h>
-#include "RandomBooleanNetwork.hpp"
-#include "ThresholdErgodicSetDifferentiationTree.hpp"
-#include "DifferentiationTree.hpp"
-#include "RandomNumberGenerator.hpp"
+#include <cxxtest/TestSuite.h>
 
 #include "iostream"
 #include <map>
 #include <vector>
 #include <set>
-#include "FakePetscSetup.hpp"
 
+#include "RandomBooleanNetwork.hpp"
+#include "ThresholdErgodicSetDifferentiationTree.hpp"
+#include "DifferentiationTree.hpp"
 
-/*
- * About randomness:
- * RandomNumberGenerator::Instance()->Reseed(0);
- * RandomNumberGenerator::Instance()->Reseed(time(NULL)); //time() returns the number of seconds since January 1970
- * RandomNumberGenerator::Instance()->Reseed(getpid()); //getpid() returns the system's process ID for the current program
+/* The next header includes Buddy library. */
+#include <bdd.h>
+
+/* The next header includes a number random generator.
+ * It is possible to generate random numbers reseeding the generator.
+ * Two ways are:
+ * RandomNumberGenerator::Instance()->Reseed(time(NULL));
+ * where time() returns the number of seconds since January 1970.
+ * RandomNumberGenerator::Instance()->Reseed(getpid());
+ * where getpid() returns the system's process ID for the current program.
  */
+#include "RandomNumberGenerator.hpp"
+//This test is always run sequentially (never in parallel)
+#include "FakePetscSetup.hpp"
 
 class TestRandomBooleanNetwork : public CxxTest::TestSuite
 {
 public:
 
+	/*
+	 * == Finding attractors from 'fission yeast' network ==
+	 * The network shows 13 fixed-point attractors.
+	 *
+	 */
+
     void testFindAttractorsFromFile() throw (Exception)
     {
+    	/* First of all we initialise Buddy. */
         bdd_init(10000,1000);
         try
         {
+        	/* We instantiate a {{{RandomBooleanNetwork}}} object using a {{{ThresholdErgodicSetDifferentiationTree}}}
+        	 * which is usually used for generate a {{{DifferentiationTree}}} object. In the constructor, the
+        	 * {{{ThresholdErgodicSetDifferentiationTree}}} object initialise a {{{RandomBooleanNetwork}}} from the
+        	 * 'fission_yeast.cnet' file, and then it search the attractors.
+        	 */
             ThresholdErgodicSetDifferentiationTree TES_tree ("projects/CoGNaC/networks_samples/fission_yeast.net");
 
+            /*
+             * We get the check if the attractor number is 13 as expected.
+             */
             TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(),13u);
+
+            /*
+             * We also test if the attractors are all fixed-point (set of one state).
+             */
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
             for (unsigned i=0; i< TES_tree.getBooleanNetwork()->getAttractorsNumber(); i++)
             {
@@ -48,48 +78,87 @@ public:
             TS_FAIL(e.GetMessage());
             bdd_done();
         }
+        /* We release Buddy. */
         bdd_done();
     }
 
+	/*
+	 * == Testing input and output in {{{RandomBooleanNetwork}}} object ==
+	 * We generate a {{{RandomBooleanNetwork}}} from a file named 'mammalian.cnet', and then we search the attractors of the network.
+	 * We finally export the network and its directed graph in several file formats.
+	 */
+
     void testRandomBooleanNetwork()
     {
+    	/* First of all we initialise Buddy.
+    	 */
         bdd_init(10000,1000);
-        RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/mammalian.cnet");
 
-        delete rbn1;
-        rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/mammalian.cnet");
+        /* We generate a network from 'mammalian.cnet' file.
+         */
+        RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/mammalian.cnet");
+        /* We search the attractors of the network.
+         */
         rbn1->findAttractors();
+        /* We save the network in several distinct file formats:
+         * .net, BooleanNet and BoolNet. We also save its graph
+         * in .gml, .dot and .sif file format.
+         */
         rbn1->printNetworkToNetFile("networks_generated", "mammalian_GEN_ATTRACTORS.net");
         rbn1->printNetworkToBooleanNetFile("networks_generated", "mammalian_booleannet_TXT_GEN.txt");
         rbn1->printNetworkToBoolNetFile("networks_generated", "mammalian_TXT_GEN.txt");
         rbn1->printGraphToGmlFile("networks_generated", "mammalian_graph_GEN.gml");
         rbn1->printGraphToDotFile("networks_generated", "mammalian_graph_GEN.dot");
         rbn1->printGraphToSifFile("networks_generated", "mammalian_graph_GEN.sif");
+        /* We release Buddy. */
         bdd_done();
     }
+
+	/*
+	 * == Testing properties of a fixed {{{RandomBooleanNetwork}}} ==
+	 * We generate a {{{RandomBooleanNetwork}}} using a fixed seed of the {{{RandomNumberGenerator}}} and
+	 * then we test the properties of the network.
+	 */
+
     void testRbnGenerator()
     {
+    	/* First of all we initialise Buddy. */
         bdd_init(10000,1000);
+        /* We instantiate the {{{RandomNumberGenerator}}} into a specific seed.
+         * Usually it is chosen at random, using time(NULL) or getpid() functions.
+         */
         RandomNumberGenerator::Instance()->Reseed(0);
-
+        /* We generate a random network with 11 nodes, K=2, scale-free functions and completely canalyzing functions.
+		 */
         ThresholdErgodicSetDifferentiationTree TES_tree(11,2,true,1);
 
+        /* We test that the generated  network has four attractors. */
         TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(), 4u);
+
+        /* We also test that the generated differentiation tree has five nodes
+         * with a root and four leaves.
+         */
         DifferentiationTree* Diff_tree = TES_tree.getDifferentiationTree();
         Diff_tree->printDifferentiationTree();
         TS_ASSERT_EQUALS(Diff_tree->size(), 5u);
         TS_ASSERT_EQUALS(Diff_tree->getLeaves().size(), 4u);
 
+        /* We release Buddy. */
         bdd_done();
     }
-
+    /*
+	 * == Searching a network which shows a particular {{{DifferentiationTree}}} ==
+	 * We randomly generate {{{RandomBooleanNetwork}}} objects until we obtain a fixed
+	 * {{{Differentiation}}} using the function {{{topologyTreeCompare}}}.
+	 */
     void testSearchDifferentiationTree()
     {
+    	/* First of all we initialise Buddy. */
+        bdd_init(200000,10000);
+
         bool tree_isomorphism = false;
         unsigned attempt_number = 0;
         RandomNumberGenerator::Instance()->Reseed(0);
-
-        bdd_init(200000,10000);
 
         DifferentiationTree* diff_tree = new DifferentiationTree();
         diff_tree->addNewChild(0);
@@ -116,49 +185,34 @@ public:
         tes_tree->getBooleanNetwork()->printNetworkToBoolNetFile("networks_generated", "RandomNetwork_Match_GEN.txt");
         delete tes_tree;
         delete differentiation_tree;
-
+        /* We release Buddy. */
         bdd_done();
     }
 
+    /*
+	 * == Testing the diffentiation tree from a fixed network ==
+	 * We generate a {{{RandomBooleanNetwork}}} from a file, and we generate its
+	 * {{{DifferentiationTree}}}. Then, we check its topological properties.
+	 */
     void testThresholdErgodicSetDifferentiationTree()
     {
         /* Matrix taken from Graudenzi et al. http://dx.doi.org/10.1101/000927 */
-    	/*
-    	std::vector<std::map<unsigned,double> > stoc_matrix(4);
-        stoc_matrix.at(0).insert(std::pair<unsigned,double>(0,0.886));
-        stoc_matrix.at(0).insert(std::pair<unsigned,double>(1,0.064));
-        stoc_matrix.at(0).insert(std::pair<unsigned,double>(2,0.001));
-        stoc_matrix.at(0).insert(std::pair<unsigned,double>(3,0.049));
-        stoc_matrix.at(1).insert(std::pair<unsigned,double>(0,0.068));
-        stoc_matrix.at(1).insert(std::pair<unsigned,double>(1,0.877));
-        stoc_matrix.at(1).insert(std::pair<unsigned,double>(2,0.054));
-        stoc_matrix.at(1).insert(std::pair<unsigned,double>(3,0.001));
-        stoc_matrix.at(2).insert(std::pair<unsigned,double>(1,0.06));
-        stoc_matrix.at(2).insert(std::pair<unsigned,double>(2,0.896));
-        stoc_matrix.at(2).insert(std::pair<unsigned,double>(3,0.044));
-        stoc_matrix.at(3).insert(std::pair<unsigned,double>(0,0.053));
-        stoc_matrix.at(3).insert(std::pair<unsigned,double>(1,0.004));
-        stoc_matrix.at(3).insert(std::pair<unsigned,double>(2,0.052));
-        stoc_matrix.at(3).insert(std::pair<unsigned,double>(3,0.891));
-
-        ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
-                        std::vector<unsigned>(4,2));
-        */
     	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/graudenzi_matrix.dat");
-    	TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","graudenzi_matrix2.dat");
+    	/* We obtain its differentiation tree. */
+    	DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
 
-
-        DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
-
-        diff_tree->printDifferentiationTree();
+    	/* We assert properties on the number of children for each node. */
         TS_ASSERT_EQUALS(diff_tree->getRoot()->getNumberOfChildren(), 2u);
         TS_ASSERT_EQUALS(diff_tree->getLeaves().size(), 4u);
         TS_ASSERT_EQUALS(diff_tree->size(), 7u);
         std::vector<std::set<unsigned> > level_nodes = diff_tree->getLevelNodes();
 
-        diff_tree->printDifferentiationTreeToGmlFile("networks_generated","graudenzi_cell_tree.gml");
+        /* We export the differentiation tree into a .gml file. */
+        //diff_tree->printDifferentiationTreeToGmlFile("networks_generated","graudenzi_cell_tree.gml");
+        diff_tree->printDifferentiationTree();
         delete diff_tree;
 
+    	/* We assert properties for each level in the tree. */
         TS_ASSERT_EQUALS(level_nodes.size(), 4u);
         TS_ASSERT_EQUALS(level_nodes.at(0).size(), 1u);
         TS_ASSERT_EQUALS(level_nodes.at(1).size(), 2u);
@@ -166,97 +220,52 @@ public:
         TS_ASSERT_EQUALS(level_nodes.at(3).size(), 2u);
     }
 
+    /*
+	 * == Generating {{{RandomBooleanNetwork}}} with fixed topology ==
+	 * We randomly generate {{{RandomBooleanNetwork}}} objects starting from a
+	 * fixed graph and then we save it to a .gml file in order to test the
+	 * equality.
+	 */
     void testFixedTopologyRandomBooleanNetwork() throw (Exception)
     {
+    	/* First of all we initialise Buddy. */
     	bdd_init(10000,1000);
         try
         {
+        	/* We generate a {{{RandomBooleanNetwork}}} starting from a graph. */
             RandomBooleanNetwork rbn1("projects/CoGNaC/networks_samples/mammalian_graph.gml", 0.5);
+            /* And then we save it into a .gml file, in order to check its topological properties using Cytoscape */
             rbn1.printGraphToGmlFile("networks_generated", "mammalian_graph_FixedTopologyRBN_GEN.gml");
-            rbn1.printNetworkToNetFile("networks_generated", "mammalian_graph_FixedTopologyRBN_GEN.net");
         } catch (Exception& e)
         {
             TS_FAIL(e.GetMessage());
             bdd_done();
         }
+        /* We release Buddy. */
         bdd_done();
     }
 
+    /*
+	 * == Testing Buddy ==
+	 * We test that BuDDy works properly, using an example contained in BuDDy's guide.
+	 */
+
     void testBuddy()
     {
-
-    	bdd x_0, x_1, x_2, x_3, x_4, nx_0, nx_1, nx_2, nx_3, nx_4, T=bddtrue, RT, I=bddtrue;
-        bdd* replaceBdd;
-        replaceBdd = new bdd[5];
-
-        bddPair* renamepair;
-        bddPair* replacePair;
-
+    	/* First of all we initialise Buddy. */
         bdd_init(1000,100);
-        bdd_setvarnum(2*5);
-        x_0 = bdd_ithvar(0);
-        x_1 = bdd_ithvar(2);
-        x_2 = bdd_ithvar(4);
-        x_3 = bdd_ithvar(6);
-        x_4 = bdd_ithvar(8);
-        nx_0 = bdd_ithvar(1);
-        nx_1 = bdd_ithvar(3);
-        nx_2 = bdd_ithvar(5);
-        nx_3 = bdd_ithvar(7);
-        nx_4 = bdd_ithvar(9);
 
-        replaceBdd[0] = !(x_0 & x_2 & x_3 & x_4);
-        replaceBdd[1] = !(x_0 & x_2 & x_3 & x_4);
-        replaceBdd[2] = !(x_0 & x_2 & x_3 & x_4);
-        replaceBdd[3] = !(x_0 & x_2 & x_3 & x_4);
-        replaceBdd[4] = !(x_0 & x_2 & x_3 & x_4);
+        /* We use three variables. */
+        bdd x,y,z;
 
-        int nvar[] = {0,2,4,6,8};
-        int pvar[] = {1,3,5,7,9};
+        bdd_setvarnum(5);
 
-        renamepair = bdd_newpair();
-        replacePair = bdd_newpair();
-        bdd_setpairs(renamepair, pvar, nvar, 5); //used to replace operate
-        bdd_setbddpairs(replacePair, nvar, replaceBdd, 5);
+        /* We impose z be x AND y. */
+        x = bdd_ithvar(0);
+        y = bdd_ithvar(1);
+        z = x & y;
 
-
-        replaceBdd[0] = bdd_veccompose(replaceBdd[0], replacePair);
-        replaceBdd[1] = bdd_veccompose(replaceBdd[1], replacePair);
-        replaceBdd[2] = bdd_veccompose(replaceBdd[2], replacePair);
-        replaceBdd[3] = bdd_veccompose(replaceBdd[3], replacePair);
-        replaceBdd[4] = bdd_veccompose(replaceBdd[4], replacePair);
-
-
-
-        T &= bdd_apply(nx_0, replaceBdd[0], bddop_biimp);
-        T &= bdd_apply(nx_1, replaceBdd[1], bddop_biimp);
-        T &= bdd_apply(nx_2, replaceBdd[2], bddop_biimp);
-        T &= bdd_apply(nx_3, replaceBdd[3], bddop_biimp);
-        T &= bdd_apply(nx_4, replaceBdd[4], bddop_biimp);
-
-        replaceBdd[0] = bdd_veccompose(replaceBdd[0], replacePair);
-        replaceBdd[1] = bdd_veccompose(replaceBdd[1], replacePair);
-        replaceBdd[2] = bdd_veccompose(replaceBdd[2], replacePair);
-        replaceBdd[3] = bdd_veccompose(replaceBdd[3], replacePair);
-        replaceBdd[4] = bdd_veccompose(replaceBdd[4], replacePair);
-
-        replaceBdd[0] = bdd_veccompose(replaceBdd[0], replacePair);
-        replaceBdd[1] = bdd_veccompose(replaceBdd[1], replacePair);
-        replaceBdd[2] = bdd_veccompose(replaceBdd[2], replacePair);
-        replaceBdd[3] = bdd_veccompose(replaceBdd[3], replacePair);
-        replaceBdd[4] = bdd_veccompose(replaceBdd[4], replacePair);
-
-        replaceBdd[0] = bdd_veccompose(replaceBdd[0], replacePair);
-        replaceBdd[1] = bdd_veccompose(replaceBdd[1], replacePair);
-        replaceBdd[2] = bdd_veccompose(replaceBdd[2], replacePair);
-        replaceBdd[3] = bdd_veccompose(replaceBdd[3], replacePair);
-        replaceBdd[4] = bdd_veccompose(replaceBdd[4], replacePair);
-
-        bdd var_set = bdd_makeset(nvar, 5);
-        bdd assignment = (x_0 & x_1 & x_2 & x_3 & x_4);
-        assignment = bdd_appex(assignment, T, bddop_and, var_set);
-        assignment = bdd_replace(assignment, renamepair);
-
+        /* We release Buddy. */
         bdd_done();
     }
 

@@ -36,7 +36,6 @@ ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(s
 
 ThresholdErgodicSetDifferentiationTree::ThresholdErgodicSetDifferentiationTree(std::string file_path)
 {
-	std::cout.flush();
 	if (file_path.size() > 4)
 	{
 		try {
@@ -133,108 +132,72 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
     unsigned step = 0;
     std::set<double> thresholds = getThresholdValues();
     unsigned number_of_previous_components = 0;
-    //unsigned number_of_tes = 0;
     double threshold = 0.0;
     std::vector<std::map<unsigned,double> > current_stochastic_matrix(mStochasticMatrix);
     bool thresholds_ended = false;
     do
     {
-        std::set<std::set<unsigned> > strongly_connected_components = getTerminalStronglyConnectedComponents(current_stochastic_matrix);
-        unsigned* component = new unsigned[mStochasticMatrix.size()];
-        std::set<std::set<unsigned> >::iterator it_components;
-        std::set<unsigned>::iterator it_nodes;
-        unsigned counter_set = 0;
-        for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
-        {
-            for (it_nodes = it_components->begin(); it_nodes!=it_components->end(); ++it_nodes)
-            {
-                component[*it_nodes] = counter_set;
-            }
-            counter_set++;
-        }
 
-        bool isTes = isThresholdErgodicSet(current_stochastic_matrix, component);
+        std::set<std::set<unsigned> > terminal_sccs = getTerminalStronglyConnectedComponents(current_stochastic_matrix);
+        std::set<std::set<unsigned> >::iterator it_components;
+
+        bool isTes = isThresholdErgodicSet(current_stochastic_matrix, terminal_sccs);
         if (step==0)
         {
-			if (isTes)
+			std::set<unsigned> component_states;
+			for (unsigned i=0; i<mStochasticMatrix.size(); i++)
 			{
-				std::set<unsigned> component_states;
-				for (unsigned i=0; i<mStochasticMatrix.size(); i++)
+				component_states.insert(i);
+			}
+			differentiation_tree = new DifferentiationTree(component_states);
+			differentiation_tree->setThreshold(0,0.0);
+			if (!isTes) differentiation_tree->setFakeRoot(true);
+			number_of_previous_components = 1;
+			if (isTes && terminal_sccs.size() > 1)
+			{
+				for (it_components = terminal_sccs.begin(); it_components!=terminal_sccs.end(); ++it_components)
 				{
-					component_states.insert(i);
-				}
-				std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-				double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-				differentiation_tree = new DifferentiationTree(cell_cycle_length, component_states, stationary_distribution);
-
-				number_of_previous_components = 1;
-				if (strongly_connected_components.size() > 1)
-				{
-
-					for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
+					std::set<unsigned> component_states(*it_components);
+					unsigned parent = differentiation_tree->searchParentNode(component_states);
+					if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
 					{
-						std::set<unsigned> component_states(*it_components);
-						unsigned parent = differentiation_tree->searchParentNode(component_states);
-						if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
-						{
-							//std::set<unsigned> component_states(*strongly_connected_components.begin());
-							std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-							double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-							differentiation_tree->addNewChild(parent, cell_cycle_length,
-									component_states, stationary_distribution);
-						}
+						differentiation_tree->addNewChild(parent, component_states);
+						//differentiation_tree->setThreshold(parent,threshold);
+						differentiation_tree->setThreshold(differentiation_tree->size()-1,threshold);
 					}
 				}
-
+				number_of_previous_components = terminal_sccs.size();
+			}
+        }
+        else
+		{
+			if (isTes && number_of_previous_components != terminal_sccs.size())
+			{
+				for (it_components = terminal_sccs.begin(); it_components!=terminal_sccs.end(); ++it_components)
+				{
+					std::set<unsigned> component_states(*it_components);
+					unsigned parent = differentiation_tree->searchParentNode(component_states);
+					if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
+					{
+						differentiation_tree->addNewChild(parent, component_states);
+						//differentiation_tree->setThreshold(parent,threshold);
+						differentiation_tree->setThreshold(differentiation_tree->size()-1,threshold);
+					}
+				}
+				number_of_previous_components = terminal_sccs.size();
 			}
 		}
-        else
-        {
-            if (number_of_previous_components != strongly_connected_components.size())
-            {
-                if (isTes && number_of_previous_components == 0)
-                {
-                    std::set<unsigned> component_states;
-                    for (unsigned i=0; i<mStochasticMatrix.size(); i++)
-                    {
-                        component_states.insert(i);
-                    }
-                    std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-                    double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-                    differentiation_tree = new DifferentiationTree(cell_cycle_length, component_states, stationary_distribution);
-                }
-                else
-                {
-                	unsigned i=1;
-                    for (it_components = strongly_connected_components.begin(); it_components!=strongly_connected_components.end(); ++it_components)
-                    {
-                        std::set<unsigned> component_states(*it_components);
-                        unsigned parent = differentiation_tree->searchParentNode(component_states);
-                        if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
-                        {
-                            //std::set<unsigned> component_states(*strongly_connected_components.begin());
-                            std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
-                            double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
-                            differentiation_tree->addNewChild(parent, cell_cycle_length, component_states, stationary_distribution);
-                        }
-                        i++;
-                    }
-                }
-                number_of_previous_components = strongly_connected_components.size();
-            }
-        }
-        delete[] component;
-        if (thresholds.size()>0)
-        {
-            threshold = *thresholds.begin();
-            if (threshold != 1.0)
-            {
-                thresholds.erase(thresholds.begin());
-                current_stochastic_matrix = getPrunedMatrix(threshold);
-                bool rows_equals_to_zero = false;
-                for (unsigned row=0; row< current_stochastic_matrix.size() && !rows_equals_to_zero; row++)
+		if (thresholds.size()>0)
+		{
+			threshold = *thresholds.begin();
+			if (threshold != 1.0)
+			{
+				thresholds.erase(thresholds.begin());
+				current_stochastic_matrix = getPrunedMatrix(threshold);
+				bool rows_equals_to_zero = false;
+				for (unsigned row=0; row< current_stochastic_matrix.size() && !rows_equals_to_zero; row++)
 				{
-                	double row_sum = 0;
+					double row_sum = 0;
 					std::map<unsigned,double>::iterator iterator;
 					rows_equals_to_zero = current_stochastic_matrix.at(row).empty();
 					for (iterator=current_stochastic_matrix.at(row).begin(); iterator!=current_stochastic_matrix.at(row).end() && !rows_equals_to_zero; ++iterator)
@@ -246,16 +209,17 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
 						rows_equals_to_zero = true;
 					}
 				}
-                thresholds_ended = rows_equals_to_zero;
-            } else	thresholds_ended = true;
-        }
-        else
-        {
-            thresholds_ended = true;
-        }
-        step++;
-    } while(!thresholds_ended /*&& number_of_previous_components!=mStochasticMatrix.size()*/);
-    return differentiation_tree;
+				thresholds_ended = rows_equals_to_zero;
+			} else	thresholds_ended = true;
+		}
+		else
+		{
+			thresholds_ended = true;
+		}
+		step++;
+	} while(!thresholds_ended);
+    assignProbabilitiesAndCellCycleLengths(differentiation_tree);
+	return differentiation_tree;
 }
 
 std::set<double> ThresholdErgodicSetDifferentiationTree::getThresholdValues() const
@@ -315,26 +279,6 @@ void ThresholdErgodicSetDifferentiationTree::normalizePrunedMatrix(
             }
         }
     }
-}
-
-bool ThresholdErgodicSetDifferentiationTree::isThresholdErgodicSet(
-        std::vector<std::map<unsigned,double> > matrix,
-        const unsigned* component
-        ) const
-{
-    bool components_connected = false;/*
-    for(unsigned row = 0; row < matrix.size() && !components_connected; row++)
-    {
-        std::map<unsigned,double>::iterator iterator;
-        for (iterator=matrix.at(row).begin(); iterator!=matrix.at(row).end() && !components_connected; ++iterator)
-        {
-            if (component[row] != component[iterator->first])
-            {
-                components_connected = true;
-            }
-        }
-    }*/
-    return !components_connected;
 }
 
 std::set<std::set<unsigned> > ThresholdErgodicSetDifferentiationTree::getStronglyConnectedComponents(
@@ -464,73 +408,72 @@ std::vector<double> ThresholdErgodicSetDifferentiationTree::findStationaryDistri
         std::vector<std::map<unsigned, double> > tes_map_matrix,
         std::set<unsigned> component) const
 {
-    //Mat ergodic_matrix;
-    unsigned size = component.size();
-    if (size == 1)
-    {
-        std::vector<double> stationary_distribution(1,1.0);
-        return stationary_distribution;
-    }
-    LinearSystem ls(size, size);
-    ls.SetMatrixIsConstant(true);
+	//Mat ergodic_matrix;
+	unsigned size = component.size();
+	if (size == 1)
+	{
+		std::vector<double> stationary_distribution(1,1.0);
+		return stationary_distribution;
+	}
+	LinearSystem ls(size, size);
+	ls.SetMatrixIsConstant(true);
 
-    std::set<unsigned>::iterator set_iterator;
-    unsigned row = 0;
-    for (set_iterator = component.begin(); set_iterator!=component.end(); ++set_iterator)
-    {
-        if (row != size - 1)
-        {
-            ls.SetRhsVectorElement(row,0.0);
-        }
-        else
-        {
-            ls.SetRhsVectorElement(row,1.0);
-        }
-        unsigned state_value = *set_iterator;
-        std::map<unsigned, double> map_row = tes_map_matrix.at(state_value);
-        std::map<unsigned, double>::iterator map_iterator = map_row.begin();
-        for(unsigned col = 0; col<size; col++)
-        {
-            if (col == size-1)
-            {
-                ls.SetMatrixElement(col, row, 1);
-            }
-            else
-            {
-                if (map_iterator != map_row.end() && map_iterator->first == col)
-                {
-                    if (col == row)
-                    {
-                        ls.SetMatrixElement(col, row, map_iterator->second - 1.0);
-                    }
-                    else
-                    {
-                        ls.SetMatrixElement(col, row, map_iterator->second);
-                    }
-                    map_iterator++;
-                }
-                else
-                {
-                    ls.SetMatrixElement(col, row, 0.0);
-                }
-            }
-        }
-        row++;
-    }
-    ls.AssembleFinalLinearSystem();
-    /* Visualization */
-    //ls.DisplayMatrix();
-    //ls.DisplayRhs();
-    /* End visualization */
-    Vec solution_vector;
-    solution_vector = ls.Solve();
-    double* p_solution_elements_array;
-    VecGetArray(solution_vector, &p_solution_elements_array);
-    std::vector<double> stationary_distribution(p_solution_elements_array, p_solution_elements_array + size);
-    VecRestoreArray(solution_vector, &p_solution_elements_array);
-    PetscTools::Destroy(solution_vector);
-    //delete p_solution_elements_array;
-    return stationary_distribution;
+	std::set<unsigned>::iterator set_iterator;
+	unsigned row = 0;
+	for (set_iterator = component.begin(); set_iterator!=component.end(); ++set_iterator)
+	{
+		if (row != size - 1)
+		{
+			ls.SetRhsVectorElement(row,0.0);
+		}
+		else
+		{
+			ls.SetRhsVectorElement(row,1.0);
+		}
+		unsigned state_value = *set_iterator;
+		std::map<unsigned, double> map_row = tes_map_matrix.at(state_value);
+		std::map<unsigned, double>::iterator map_iterator = map_row.begin();
+		for(unsigned col = 0; col<size; col++)
+		{
+			if (col == size-1)
+			{
+				ls.SetMatrixElement(col, row, 1);
+			}
+			else
+			{
+				if (map_iterator != map_row.end() && map_iterator->first == col)
+				{
+					if (col == row)
+					{
+						ls.SetMatrixElement(col, row, map_iterator->second - 1.0);
+					}
+					else
+					{
+						ls.SetMatrixElement(col, row, map_iterator->second);
+					}
+					map_iterator++;
+				}
+				else
+				{
+					ls.SetMatrixElement(col, row, 0.0);
+				}
+			}
+		}
+		row++;
+	}
+	ls.AssembleFinalLinearSystem();
+	/* Visualization */
+	//ls.DisplayMatrix();
+	//ls.DisplayRhs();
+	/* End visualization */
+	Vec solution_vector;
+	solution_vector = ls.Solve();
+	double* p_solution_elements_array;
+	VecGetArray(solution_vector, &p_solution_elements_array);
+	std::vector<double> stationary_distribution(p_solution_elements_array, p_solution_elements_array + size);
+	VecRestoreArray(solution_vector, &p_solution_elements_array);
+	PetscTools::Destroy(solution_vector);
+	return stationary_distribution;
 }
 
 double ThresholdErgodicSetDifferentiationTree::getCellCycleLength(
@@ -567,6 +510,77 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::getDifferentiationT
     differentiation_tree->colorise();
 
     return differentiation_tree;
+}
+
+bool ThresholdErgodicSetDifferentiationTree::isThresholdErgodicSet(
+        std::vector<std::map<unsigned,double> > matrix,
+        const std::set<std::set<unsigned> > components
+        ) const
+{
+    unsigned attractors_in_terminal_components = 0;
+    std::set<std::set<unsigned> >::const_iterator comp_iterator;
+    for(comp_iterator = components.begin();
+    		comp_iterator != components.end();
+    		++comp_iterator)
+    {
+    	attractors_in_terminal_components += comp_iterator->size();
+    }
+    return attractors_in_terminal_components==matrix.size();
+}
+
+void ThresholdErgodicSetDifferentiationTree::assignProbabilitiesAndCellCycleLengths(
+		DifferentiationTree* differentiation_tree) const
+{
+	for (unsigned i=0; i<differentiation_tree->size(); i++)
+	{
+		if (i==0 && differentiation_tree->hasFakeRoot()) continue;
+		double threshold = differentiation_tree->getNode(i)->getThreshold();
+	    std::vector<std::map<unsigned,double> > current_stochastic_matrix(mStochasticMatrix);
+	    if (threshold < 1.0)
+		{
+			current_stochastic_matrix = getPrunedMatrix(threshold);
+			std::set<unsigned> component_states = differentiation_tree->getNode(i)->getComponentStates();
+			std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
+			double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
+			std::vector<double> stoc_differentiation_vector;
+			std::vector<unsigned> children = differentiation_tree->getNode(i)->getChildren();
+			std::set<unsigned>::iterator child_iterator;
+			for (unsigned child_count = 0; child_count<children.size();++child_count)
+			{
+				double probability = 0.0;
+
+				std::set<unsigned> component_states_child = differentiation_tree->getNode(children.at(child_count))->getComponentStates();
+				std::set<unsigned>::iterator set_iterator;
+				for (set_iterator = component_states_child.begin();
+						set_iterator!=component_states_child.end();
+						set_iterator++)
+				{
+					probability += stationary_distribution.at(*set_iterator);
+				}
+				stoc_differentiation_vector.push_back(probability);
+			}
+			differentiation_tree->setStationaryDistributionAndCellCycleLength(
+					i,
+					stationary_distribution,
+					cell_cycle_length);
+			differentiation_tree->setDifferentiationProbability(
+					i, stoc_differentiation_vector);
+		}
+	    else
+	    {
+	    	std::set<unsigned> component_states = differentiation_tree->getNode(i)->getComponentStates();
+	    	std::vector<double> stationary_distribution = findStationaryDistribution(current_stochastic_matrix, component_states);
+	    	double cell_cycle_length = this->getCellCycleLength(stationary_distribution, component_states);
+			differentiation_tree->setStationaryDistributionAndCellCycleLength(
+					i,
+					stationary_distribution,
+					cell_cycle_length);
+			std::vector<double> stoc_differentiation_vector;
+			/** This is a fake probability. */
+			//stoc_differentiation_vector.push_back(1.0);
+			//differentiation_tree->setDifferentiationProbability(i, stoc_differentiation_vector);
+	    }
+	}
 }
 
 void ThresholdErgodicSetDifferentiationTree::printStochasticMatrixAndAttractorLengthsToDatFile(

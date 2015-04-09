@@ -215,7 +215,7 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialiseDau
             //Important: stationary distribution MUST BE stochastic!
 
             unsigned child_position = 0;
-            std::vector<double> probabilities = mpDifferentiationTree->getNode(mDifferentiationType)->getStationaryDistribution();
+            std::vector<double> probabilities = mpDifferentiationTree->getNode(mDifferentiationType)->getDifferentiationProbability();
             double cumulative_probability = 0.0;
             double random_number = RandomNumberGenerator::Instance()->ranf();
             for (child_position = 0; child_position<probabilities.size()-1; child_position++)

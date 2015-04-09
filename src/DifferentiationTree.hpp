@@ -14,6 +14,9 @@
 class DifferentiationTree
 {
 private:
+	/** A Boolean value indicating if the tree has a fake root */
+	bool mFakeRoot;
+
     /** Vertices of the tree */
     std::vector<DifferentiationTreeNode*> mVertices;
 
@@ -81,6 +84,14 @@ public:
     /**
      * Constructor 3:
      *
+     * @param component: a set containing the terminal strongly connected components
+     * of the set.
+     */
+    DifferentiationTree(std::set<unsigned> component);
+
+    /**
+     * Constructor 4:
+     *
      * @param cell_cycle_length: the duration (in hours) of the root's cell cycle.
      * @param component_states: a set containing the scc of the TES.
      * @param stationary_distribution: a probability vector where the i-th entry represent the i-th scc.
@@ -88,7 +99,8 @@ public:
     DifferentiationTree(
             double cell_cycle_length,
             std::set<unsigned> component_states,
-            std::vector<double> stationary_distribution
+            std::vector<double> stationary_distribution,
+	        std::vector<double> differentiation_probability
             );
     /**
      * Destruptor: deallocate all the memory deleting every element
@@ -159,6 +171,15 @@ public:
     void addNewChild(unsigned parent, double cell_cycle_length);
 
     /**
+     * Add a new child setting its component
+     * to a given parent id.
+     *
+     * @param parent
+     * @param component
+     */
+    void addNewChild(unsigned parent, std::set<unsigned> component);
+
+    /**
      * Add a new child setting its cell cycle length,
      * component states and probability distribution
      * to a given parent id.
@@ -167,12 +188,14 @@ public:
      * @param cell_cycle_length
      * @param component_states
      * @param stationary_distribution
+     * @param differentiation_probability
      */
     void addNewChild(
             unsigned parent,
             double cell_cycle_length,
             std::set<unsigned> component_states,
-            std::vector<double> stationary_distribution
+            std::vector<double> stationary_distribution,
+            std::vector<double> differentiation_probability
             );
 
     /**
@@ -225,6 +248,11 @@ public:
     unsigned size () const;
 
     /**
+     * @return true the tree has a fake root.
+     */
+    bool hasFakeRoot() const;
+
+    /**
      * Getter of mLeaves
      *
      * @return mLevaves
@@ -244,6 +272,43 @@ public:
      * @return mNodesLevel
      */
     std::vector<unsigned> getNodesLevel() const;
+
+    /**
+     * Setter of mFakeRoot
+     *
+     * @param fake_root
+     */
+    void setFakeRoot(bool fake_root);
+
+    /**
+     * Set a threshold value to a node
+     *
+     * @param node_id
+     * @param threshold
+     */
+    void setThreshold(unsigned node_id, double threshold);
+
+    /**
+     * Set a stationary distribution and cell cycle length to a node
+     *
+     * @param node_id
+     * @param stationary_distribution
+     * @param cell_cycle_length
+     */
+    void setStationaryDistributionAndCellCycleLength(
+    		unsigned node_id,
+			std::vector<double> stationary_distribution,
+			double cell_cycle_length);
+    /**
+	 * Set a differentiation probability distribution to a node
+	 *
+	 * @param differentiation_probability
+	 */
+    void setDifferentiationProbability(
+        		unsigned node_id,
+    			std::vector<double> differentiation_probability);
+
+
 };
 
 #endif /* DIFFERENTIATIONTREE_HPP_ */

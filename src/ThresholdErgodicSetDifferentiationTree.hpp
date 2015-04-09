@@ -62,15 +62,6 @@ private:
     std::vector<std::map<unsigned,double> > getPrunedMatrix(double threshold) const;
 
     /**
-     * Test for checking if the matrix is a TES
-     *
-     * @param matrix
-     *
-     * @return bool true the matrix is a TES
-     */
-    bool isThresholdErgodicSet(std::vector<std::map<unsigned,double> > matrix, const unsigned* component) const;
-
-    /**
      * Get the strongly connected components from a matrix (see as
      * Adjacency table of a graph where exist an edge if the value
      * matrix[i][j] is > 0), using the Tarjan's algorithm.
@@ -130,6 +121,14 @@ private:
      * @return length of the cell cycle model
      */
     double getCellCycleLength(std::vector<double> stationary_distribution, std::set<unsigned> component) const;
+
+    /**
+     * This method assigns probabilities and a cell cycle length
+     * to each node of the tree.
+     *
+     * @param a differentiation tree.
+     */
+    void assignProbabilitiesAndCellCycleLengths(DifferentiationTree* differentiation_tree) const;
 
 public:
 
@@ -207,7 +206,7 @@ public:
 
     /**
      * Return a pointer to a DifferentiationTree. This tree is
-     * made using the stochastic matrix and the attractor length
+     * created using the stochastic matrix and the attractor length
      * as threshold-dependent ATN.
      * GestoDifferent plugin for Cytoscape do the same.
      * doi: 10.1093/bioinformatics/bts726
@@ -218,11 +217,22 @@ public:
      * can set their own time duration, or colorise the
      * tree.
      *
-     * User must delete the object explicitly after use.
+     * User should delete the object explicitly after use.
      *
      * @return a pointer to a new DifferentiationTree,.
      */
     DifferentiationTree* getDifferentiationTree() const;
+
+    /**
+	 * Test if the network is an ergodic set (or composed only
+	 * by ergodic sets).
+	 *
+	 * @param matrix
+	 * @param components: a set containing the terminal components.
+     *
+     * @return bool true the matrix is a TES
+     */
+    bool isThresholdErgodicSet(std::vector<std::map<unsigned,double> > matrix, const std::set<std::set<unsigned> > components) const;
 
     /**
 	 * Save the stochastic matrix and the lengths of the attractors in a .dat file.

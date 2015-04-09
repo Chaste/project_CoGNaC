@@ -1,81 +1,71 @@
 #ifndef TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORK_HPP_
 #define TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORK_HPP_
 
-#include <cxxtest/TestSuite.h>
-#include "CheckpointArchiveTypes.hpp"
-#include "SmartPointers.hpp"
+/*
+ * = Searching gene activation patterns in T-helper cell differentiation =
+ * In this class we show how to search gene activation patterns starting from a network,
+ * calculate its Attractor Transition Network (Figure 3) and then calculate its {{{DifferentiationTree}}}.
+ *
+ * === Including header files ===
+ * We begin by including the necessary header files.
+*/
 
-#include <bdd.h>
+#include <cxxtest/TestSuite.h>
+
 #include "RandomBooleanNetwork.hpp"
 #include "DifferentiationTree.hpp"
 #include "DifferentiationTreeNode.hpp"
-
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
+//This test is always run sequentially (never in parallel)
 #include "FakePetscSetup.hpp"
 
 class TestSearchingGeneActivationPatternsInThelperNetwork : public CxxTest::TestSuite
 {
 public:
+	/*
+	 * == Finding attractors and calculating the ATN from 'thelper' network ==
+	 * In this example we search the attractors of the thelper network. We assert that the network has three single-point attractors and
+	 * we calculate the ATN.
+	 */
+
     void testThelper() throw (Exception)
     {
+    	/* First of all we initialise Buddy. */
         bdd_init(10000,1000);
         try
         {
-        	RandomBooleanNetwork *rbn1 = new RandomBooleanNetwork("projects/CoGNaC/networks_samples/thelper.cnet");
-            rbn1->findAttractors();
-
-            std::vector<std::map<unsigned,double> >  atn = rbn1->getAttractorMatrix();
-            for (unsigned row=0; row< atn.size(); row++)
-			{
-				std::map<unsigned,double>::iterator iterator;
-				for (iterator=atn.at(row).begin(); iterator!=atn.at(row).end(); ++iterator)
-				{
-					std::cout << "(" << row << "," << iterator->first << ") -> " << iterator->second << "\n";
-				}
-			}
-
+        	/* We instantiate a {{{RandomBooleanNetwork}}} object using a {{{ThresholdErgodicSetDifferentiationTree}}}
+        	 * which is usually used for generate a {{{DifferentiationTree}}} object. In the constructor, the
+        	 * {{{ThresholdErgodicSetDifferentiationTree}}} object initialise a {{{RandomBooleanNetwork}}} from the
+        	 * 'thelper.net' network, and then it search its attractors.
+        	 */
         	ThresholdErgodicSetDifferentiationTree TES_tree ("projects/SimoneRubinacci/networks_samples/thelper.net");
 
+        	/* We assert that the number of attractors found is three. */
             TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(),3u);
+
+        	/* We assert that the attractors found are all single-point. */
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
+            for (unsigned i=0; i<attractors_lengths.size(); i++){
+            	TS_ASSERT_EQUALS(attractors_lengths.at(i),1);
+            }
+
+            /* We export the stochastic matrix in a file. */
+            //TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix.dat");
+
+            /* We also export the differentiation tree into a .gml file. */
             DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
+            //diff_tree->printDifferentiationTreeToGmlFile("networks_generated", "Thelper_diff_tree.gml");
             diff_tree->printDifferentiationTree();
-            diff_tree->printDifferentiationTreeToGmlFile("networks_generated", "diff_tree.gml");
-            TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix.dat");
         }
         catch (Exception& e)
         {
             TS_FAIL(e.GetMessage());
             bdd_done();
         }
+        /* We release Buddy. */
         bdd_done();
     }
-
-    void testMatrixWithSwitches()
-    {
-    	std::vector<std::map<unsigned,double> > stoc_matrix(3);
-        stoc_matrix.at(0).insert(std::pair<unsigned,double>(2,1));
-        stoc_matrix.at(1).insert(std::pair<unsigned,double>(1,1));
-        stoc_matrix.at(2).insert(std::pair<unsigned,double>(0,1));
-
-        ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
-                        std::vector<unsigned>(3,1));
-
-        DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
-        diff_tree->printDifferentiationTree();
-
-        delete diff_tree;
-    }
-
-    void testMatrixFromFile()
-	{
-    	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/matrix.dat");
-    	TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix_prova.dat");
-    	DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
-		diff_tree->printDifferentiationTree();
-		diff_tree->printDifferentiationTreeToGmlFile("networks_generated","diff_tree.gml");
-        delete diff_tree;
-	}
 };
 
 

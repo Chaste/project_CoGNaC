@@ -9,6 +9,9 @@
 class DifferentiationTreeNode
 {
 private:
+	/** Threshold value where it breaks into some disjoint TESs.  */
+	double mThreshold;
+
     /** Colour used for paraview simulations. It is a value in [0,1]*/
     double mColour;
 
@@ -24,8 +27,13 @@ private:
     /** Children of the nodes */
     std::vector<unsigned> mChildren;
 
-    /** Probability distribution. It must be the same size of mChildren*/
+    /** Stationary distribution.
+     * It must be the same size of mComponentStates, if it is defined*/
     std::vector<double> mStationaryDistribution;
+
+    /** Differentiation probability distribution.
+     * It must be the same size of mChildren*/
+    std::vector<double> mDifferentiationProbability;
 
 public:
     /**
@@ -43,6 +51,14 @@ public:
     DifferentiationTreeNode(double cell_cycle_length);
 
     /**
+     * Constructor 3: only a set of terminal strongly connected components
+     * as parameter.
+     *
+     * @param component
+     */
+    DifferentiationTreeNode(std::set<unsigned> component);
+
+    /**
      * Constructor 3. Used by ThresholdErgodicSetDifferentiationTree
      *
      * @param cell_cycle_length
@@ -50,7 +66,7 @@ public:
      * @param stationary_distribution
      */
     DifferentiationTreeNode(double cell_cycle_length, std::set<unsigned> component_states,
-            std::vector<double> stationary_distribution);
+            std::vector<double> stationary_distribution, std::vector<double> differentiation_probability);
 
     /** Distructor */
     ~DifferentiationTreeNode();
@@ -73,6 +89,11 @@ public:
      * @return true if it has not children
      */
     bool isLeaf() const;
+
+    /**
+     * @return mThreshold value
+     */
+    double getThreshold() const;
 
     /**
      * @return cardinality of mComponentStates
@@ -127,11 +148,32 @@ public:
     std::vector<double> getStationaryDistribution() const;
 
     /**
+     * Getter of mDifferentiationProbability
+     *
+     * @return mDifferentiationProbability
+     */
+    std::vector<double> getDifferentiationProbability() const;
+
+    /**
      * Setter of mStationaryDistribution
      *
      * @param distribution
      */
     void setStationaryDistribution(std::vector<double> distribution);
+
+    /**
+     * Setter of mDifferentiationProbability
+     *
+     * @param distribution
+     */
+    void setDifferentiationProbability(std::vector<double> distribution);
+
+    /**
+     * Setter of mThreshold
+     *
+     * @param threshold
+     */
+    void setThreshold(double threshold);
 
     /**
      * Setter of mColour

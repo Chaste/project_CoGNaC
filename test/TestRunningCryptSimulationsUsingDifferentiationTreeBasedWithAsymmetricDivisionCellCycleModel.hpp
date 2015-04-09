@@ -1,9 +1,24 @@
 #ifndef TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_
 #define TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_
 
+/*
+ * = Example of a cancer cell colonization of a colon crypt =
+ *
+ * == Introduction ==
+ *
+ * In this test we show how Chaste can be used to simulate a model of a colon crypt
+ * combining a center-based 2-D representation of cells at the spatial level, and a
+ * NRBN-based underlying gene regulatory network.
+ * Full details of the computational model can be found in
+ * Rubinacci ''et al.'' (2015).
+ *
+ * This class was used to produce the results in Figure 5. In addition, we used this
+ * class to produce the differentiation tree in Figure 4.
+ *
+ * We begin by including the necessary header files.
+ */
+
 #include <cxxtest/TestSuite.h>
-#include "CheckpointArchiveTypes.hpp"
-#include "SmartPointers.hpp"
 #include "AbstractCellBasedTestSuite.hpp"
 
 #include <vector>
@@ -163,6 +178,7 @@ public:
     	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/fig4_atn.dat");
 
         DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
+		diff_tree->printDifferentiationTree();
 
         //Assert topological properties of the tree.
         TS_ASSERT_EQUALS(diff_tree->getRoot()->getNumberOfChildren(), 3u);
@@ -174,18 +190,31 @@ public:
 		TS_ASSERT_EQUALS(level_nodes.at(0).size(), 1u);
 		TS_ASSERT_EQUALS(level_nodes.at(1).size(), 3u);
 
+		double* diff_prob = new double[3];
+		diff_prob[0] = 0.946185;
+		diff_prob[1] = 0.0518302;
+		diff_prob[2] = 0.00198491;
 
-		std::vector<double> stochatic_probabilities;
-		stochatic_probabilities.push_back(0.9459740);
-		stochatic_probabilities.push_back(0.0518657);
-		stochatic_probabilities.push_back(0.00216022);
-		std::vector<double> stochatic_probabilities_root = diff_tree->getRoot()->getStationaryDistribution();
-		std::vector<double>::iterator iterator;
+		std::vector<double> diff_prob_root = diff_tree->getRoot()->getDifferentiationProbability();
 
-		TS_ASSERT_EQUALS(stochatic_probabilities.size(), stochatic_probabilities_root.size());
-		for (unsigned i = 0; i<stochatic_probabilities.size(); ++i)
+		TS_ASSERT_EQUALS(3, diff_prob_root.size());
+		double* array_diff_probs = &diff_prob_root[0];
+		for (unsigned i=0;i<2;i++)
 		{
-			TS_ASSERT_DELTA(stochatic_probabilities.at(i), stochatic_probabilities_root.at(i), 1e-6);
+			for(unsigned j=i+1;j<3;j++)
+			{
+				if (array_diff_probs[j] > array_diff_probs[i])
+				{
+					double temp = array_diff_probs[j];
+					array_diff_probs[j] = array_diff_probs[i];
+					array_diff_probs[i] = temp;
+				}
+			}
+		}
+
+		for (unsigned i = 0; i<3; ++i)
+		{
+			TS_ASSERT_DELTA(diff_prob[i], array_diff_probs[i], 1e-6);
 		}
 
         delete diff_tree;
@@ -221,10 +250,10 @@ public:
         TS_ASSERT_EQUALS(population_satisfies_bc, true);
     }
 
-    void noTestSimulationWithBoundaries()
+    void TestSimulationWithBoundaries()
 	{
-    	//RandomNumberGenerator::Instance()->Reseed(time(NULL));
-    	/*
+    	RandomNumberGenerator::Instance()->Reseed(time(NULL));
+/*
 		std::vector<std::map<unsigned,double> > stoc_matrix(3);
 		stoc_matrix.at(0).insert(std::pair<unsigned,double>(0,0.9746));
 		stoc_matrix.at(0).insert(std::pair<unsigned,double>(1,0.0246));
@@ -243,14 +272,15 @@ public:
 
 		ThresholdErgodicSetDifferentiationTree TES_tree(stoc_matrix,
 						attractor_lengths);
-		*/
+*/
     	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/fig4_atn.dat");
-
+		TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","mynet.dat");
 		DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
-		diff_tree->printDifferentiationTreeToGmlFile("networks_generated","fig4_differentiation_tree.gml");
-
-		markLessProbableWithBlackColour(diff_tree);
+		diff_tree->printDifferentiationTreeToGmlFile("networks_generated","omg.gml");
+		diff_tree->printDifferentiationTree();
+		//markLessProbableWithBlackColour(diff_tree);
 		diff_tree->normaliseLength(8.0);
+
 		HoneycombMeshGenerator generator(20, 20, 4);
 		MutableMesh<2,2>* p_mesh = generator.GetMesh();
 		std::vector<unsigned> location_indices = generator.GetCellLocationIndices();
@@ -299,7 +329,9 @@ public:
 
 	}
 
-    void markLessProbableWithBlackColour(DifferentiationTree* diff_tree)
+    /* This method gives a colour to each cell type in a differentiation tree,
+     * marking the less probable to have an high value (from the range [0,4]). */
+    void markLessProbableWithRedColour(DifferentiationTree* diff_tree)
     {
     	diff_tree->setColour(0, 0.0);
     	double minimum = DBL_MAX;
@@ -335,50 +367,6 @@ public:
     			else diff_tree->setColour(i, 1.0);
 			}
     	}
-    }
-
-    void noTestGenerateFig2()
-    {
-        DifferentiationTree* tree = new DifferentiationTree(4);
-        tree->addNewChild(0,4);
-        tree->addNewChild(0,4);
-
-        tree->colorise();
-
-
-        HoneycombMeshGenerator generator(1, 1, 4);
-        MutableMesh<2,2>* p_mesh = generator.GetMesh();
-        std::vector<unsigned> location_indices = generator.GetCellLocationIndices();
-
-        std::vector<CellPtr> cells;
-        MAKE_PTR(StemCellProliferativeType, p_stem_type);
-        MAKE_PTR(TransitCellProliferativeType, p_transit_type);
-        CellsGenerator<DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel, 2> cells_generator;
-        cells_generator.GenerateBasicRandom(cells, location_indices.size(), p_stem_type);
-
-        for (unsigned i=0; i<cells.size(); i++)
-        {
-        	DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel* p_cell_cycle_model =
-                                new DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel(tree,0);
-            CellPtr p_cell = cells.at(i);
-            p_cell->SetCellCycleModel(p_cell_cycle_model);
-            p_cell->InitialiseCellCycleModel();
-        }
-
-        MeshBasedCellPopulationWithGhostNodes<2> cell_population(*p_mesh, cells, location_indices);
-        cell_population.AddCellWriter<CellDifferentiationTypeWriter>();
-        cell_population.SetWriteVtkAsPoints(false);
-        cell_population.AddPopulationWriter<VoronoiDataWriter>();
-
-        OffLatticeSimulation<2> simulator(cell_population);
-        simulator.SetOutputDirectory("TestFig2");
-        simulator.SetEndTime(16.0);
-
-        MAKE_PTR(GeneralisedLinearSpringForce<2>, p_linear_force);
-        simulator.AddForce(p_linear_force);
-
-        simulator.Solve();
-        delete tree;
     }
 };
 #endif /* TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_ */
