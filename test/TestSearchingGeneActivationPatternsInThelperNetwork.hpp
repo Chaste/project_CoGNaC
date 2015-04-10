@@ -19,6 +19,7 @@
 //This test is always run sequentially (never in parallel)
 #include "FakePetscSetup.hpp"
 
+/* Next, we define the test class. */
 class TestSearchingGeneActivationPatternsInThelperNetwork : public CxxTest::TestSuite
 {
 public:

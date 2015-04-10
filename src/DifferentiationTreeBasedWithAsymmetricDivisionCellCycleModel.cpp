@@ -211,7 +211,7 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialiseDau
     {
         if (mpDifferentiationTree->getNode(mDifferentiationType)->getNumberOfChildren() != 0)
         {
-        	//Divide!
+        	//Division
             //Important: stationary distribution MUST BE stochastic!
 
             unsigned child_position = 0;

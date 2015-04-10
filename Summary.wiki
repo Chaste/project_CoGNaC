@@ -61,10 +61,10 @@ There are three folders - `networks_samples`, `src` and `test`.
   * `DifferentiationTree.hpp`, `DifferentiationTreeNode.hpp` - used to represent a cellular differentiation tree.
   * `DifferentiationTreeBasedCellCycleModel.hpp`, `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` - used for the representation of a cell cycle model, using the information contained in a `DifferentiationTree` object and performing stochastic differentiation. In addition `DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp` implements stem cells asymmetric division.
  1. The `test` folder contains:
-  * [wiki:PaperTutorials/CoGNaC/TestArrayDirectedGraph TestArryDirectedGraph.hpp] - testing `ArrayDirectedGraph.hpp` class.
-  * [wiki:PaperTutorials/CoGNaC/TestDifferentiationTree TestDifferentiationTree.hpp] - testing `DifferentiationTree.hpp` class.
-  * [wiki:PaperTutorials/CoGNaC/TestGraphNode TestGraphNode.hpp] - testing `GraphNode.hpp` class.
-  * [wiki:PaperTutorials/CoGNaC/TestRandomBooleanNetwork TestGraphNode.hpp] - testing `RandomBooleanNetwork.hpp` class and the Buddy dependency..
+  * `TestArryDirectedGraph.hpp` - testing `ArrayDirectedGraph.hpp` class.
+  * `TestDifferentiationTree.hpp` - testing `DifferentiationTree.hpp` class.
+  * `TestGraphNode.hpp` - testing `GraphNode.hpp` class.
+  * `TestRandomBooleanNetwork.hpp` - testing `RandomBooleanNetwork.hpp` class and the Buddy dependency..
   * [wiki:PaperTutorials/CoGNaC/GeneActivationPatternsInThelperCellDifferentiation TestSearchingGeneActivationPatternsInThelperNetwork.hpp] - this file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
   * [wiki:PaperTutorials/CoGNaC/CancerCellColonizationOfAColonCrypt TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp] - this file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree. It can also generate the crypt simulations shown in Figure 5.
   
