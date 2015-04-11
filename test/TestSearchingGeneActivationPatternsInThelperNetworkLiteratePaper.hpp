@@ -1,12 +1,16 @@
-#ifndef TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORK_HPP_
-#define TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORK_HPP_
+#ifndef TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORKLITERATEPAPER_HPP_
+#define TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORKLITERATEPAPER_HPP_
 
 /*
  * = Searching gene activation patterns in T-helper cell differentiation =
- * In this class we show how to search gene activation patterns starting from a network,
- * calculate its Attractor Transition Network (Figure 3) and then calculate its {{{DifferentiationTree}}}.
  *
- * === Including header files ===
+ * == Introduction ==
+ *
+ * EMPTYLINE
+ *
+ * In this class we show how to search gene activation patterns starting from a network,
+ * calculate its Attractor Transition Network (Figure 3).
+ *
  * We begin by including the necessary header files.
 */
 
@@ -25,8 +29,11 @@ class TestSearchingGeneActivationPatternsInThelperNetwork : public CxxTest::Test
 public:
 	/*
 	 * == Finding attractors and calculating the ATN from 'thelper' network ==
-	 * In this example we search the attractors of the thelper network. We assert that the network has three single-point attractors and
-	 * we calculate the ATN.
+	 *
+	 * EMPTYLINE
+	 *
+	 * In this example we search the attractors of the thelper network. We test that
+	 * the network has three single-point attractors and calculate the ATN.
 	 */
 
     void testThelper() throw (Exception)
@@ -36,28 +43,24 @@ public:
         try
         {
         	/* We instantiate a {{{RandomBooleanNetwork}}} object using a {{{ThresholdErgodicSetDifferentiationTree}}}
-        	 * which is usually used for generate a {{{DifferentiationTree}}} object. In the constructor, the
+        	 * which is used for generate a {{{DifferentiationTree}}} object. In the constructor, the
         	 * {{{ThresholdErgodicSetDifferentiationTree}}} object initialise a {{{RandomBooleanNetwork}}} from the
-        	 * 'thelper.net' network, and then it search its attractors.
+        	 * 'thelper.net' network, and then it search the attractors of the network.
         	 */
-        	ThresholdErgodicSetDifferentiationTree TES_tree ("projects/SimoneRubinacci/networks_samples/thelper.net");
+        	ThresholdErgodicSetDifferentiationTree TES_tree ("projects/CoGNaC/networks_samples/thelper.net");
 
-        	/* We assert that the number of attractors found is three. */
+        	/* We test that the number of attractors found is three. */
             TS_ASSERT_EQUALS(TES_tree.getBooleanNetwork()->getAttractorsNumber(),3u);
 
-        	/* We assert that the attractors found are all single-point. */
+        	/* We test that the attractors found are all single-point. */
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
             for (unsigned i=0; i<attractors_lengths.size(); i++){
             	TS_ASSERT_EQUALS(attractors_lengths.at(i),1);
             }
 
-            /* We export the stochastic matrix in a file. */
-            //TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","matrix.dat");
-
-            /* We also export the differentiation tree into a .gml file. */
-            DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
-            //diff_tree->printDifferentiationTreeToGmlFile("networks_generated", "Thelper_diff_tree.gml");
-            diff_tree->printDifferentiationTree();
+            /* We export the stochastic matrix in a file, where we can
+             * visualise data shown in Figure 3 (Attractor Transition Network). */
+            TES_tree.printStochasticMatrixAndAttractorLengthsToDatFile("networks_generated","stochastic_matrix_thelper.dat");
         }
         catch (Exception& e)
         {
@@ -71,4 +74,4 @@ public:
 
 
 
-#endif /* TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORK_HPP_ */
+#endif /* TESTSEARCHINGGENEACTIVATIONPATTERNSINTHELPERNETWORKLITERATEPAPER_HPP_ */

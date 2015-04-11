@@ -54,6 +54,8 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::Initialise()
 
     if (mpDifferentiationTree)
     {
+    	if (mpDifferentiationTree->hasFakeRoot())
+    	    EXCEPTION("The tree has a fake root and cannot be used during a simulation. You should call 'SplitTreeFromFakeRoot()' from 'DifferentiationTree' class, in order to get sub-trees without fake roots and associate them to a cell cycle model.");
         mSDuration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
         mG2Duration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
         mMDuration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
@@ -109,6 +111,8 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialiseAft
 
     if (mpDifferentiationTree)
     {
+    	if (mpDifferentiationTree->hasFakeRoot())
+    	    EXCEPTION("The tree has a fake root and cannot be used during a simulation. You should call 'SplitTreeFromFakeRoot()' from 'DifferentiationTree' class, in order to get sub-trees without fake roots and associate them to a cell cycle model.");
         mSDuration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
         mG2Duration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
         mMDuration = mpDifferentiationTree->getNode(mDifferentiationType)->getCellCycleLength() / 4.0;
@@ -128,8 +132,8 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialiseAft
         {
         	/*
         	 * Differentiated cells can perform division. Formally, they are differentiated,
-        	 * but in this case, we consider them as Transit cells because in Chaste
-        	 * Differentiated cells cannot divide.
+        	 * but here we consider them as transit cells because they
+        	 * perform mitosis.
              */
         	boost::shared_ptr<AbstractCellProperty> p_diff_type =
                         mpCell->rGetCellPropertyCollection().GetCellPropertyRegistry()->Get<TransitCellProliferativeType>();
@@ -212,8 +216,6 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialiseDau
         if (mpDifferentiationTree->getNode(mDifferentiationType)->getNumberOfChildren() != 0)
         {
         	//Division
-            //Important: stationary distribution MUST BE stochastic!
-
             unsigned child_position = 0;
             std::vector<double> probabilities = mpDifferentiationTree->getNode(mDifferentiationType)->getDifferentiationProbability();
             double cumulative_probability = 0.0;
@@ -241,7 +243,6 @@ void DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel::InitialisePar
         		&& mDifferentiationType != 0)
         {
         	//Divide!
-            //Important: stationary distribution MUST BE stochastic!
 
             unsigned child_position = 0;
             std::vector<double> probabilities = mpDifferentiationTree->getNode(mDifferentiationType)->getStationaryDistribution();

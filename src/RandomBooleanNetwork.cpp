@@ -11,9 +11,9 @@
 void allsatHandlerPrint(char *varset,int size);
 
 /**
- * bddallsathandler defined for print states (as string)
- * in the stringBuffer global variable for allsat(). Used
- * for printing network in .net or .cnet files.
+ * bddallsathandler print states (as string)
+ * in the global variable 'stringBuffer' for allsat().
+ * Useful for print network in .net or .cnet files.
  */
 void allsatHandlerPrintToStringBuffer(char *varset,int size);
 
@@ -35,10 +35,8 @@ mAverageInputsPerNode(avarage_inputs_per_node)
     {
        mpRbnGraph->albertBarabasiGenerator(mAverageInputsPerNode);
     } else {
-       //mpRbnGraph->randomNetworkGenerator(mAverageInputsPerNode);
        mpRbnGraph->erdosRenyiGenerator(mAverageInputsPerNode);
     }
-    //mpRbnGraph->sortGraph();
     initBinaryDecisionDiagram();
 
     mpReverseTransitionFunction = new bdd();
@@ -130,9 +128,7 @@ RandomBooleanNetwork::~RandomBooleanNetwork()
     mpNodeFunction = NULL;
     mpNodeNthFunction = NULL;
     mpRbnGraph = NULL;
-    //mAttractors = NULL;
 
-    //bdd_done();
     RandomNumberGenerator::Instance()->Destroy();
 
 }
@@ -451,7 +447,6 @@ void RandomBooleanNetwork::createGraphFromGmlFile(const std::string file_path)
     {
         input_file.close();
         throw;
-        //TERMINATE(e.GetMessage());
     }
     if (vertices_number > 0)
     {
@@ -517,47 +512,8 @@ void RandomBooleanNetwork::createGraphFromGmlFile(const std::string file_path)
 
 void RandomBooleanNetwork::initBinaryDecisionDiagram() const
 {
-    //Graph may be ordered by number of input vertices calling graph.sortGraph().
-    /*
-    unsigned max_input_number = mpRbnGraph->getIncomingVerticesNumberById(0);
-    unsigned cache_size = 0;
-
-    if (max_input_number < 50) {
-        if (mNodesNumber <= 5)
-        {
-            cache_size = 1000;
-        } else if (mNodesNumber <= 10)
-        {
-            cache_size = 2000;
-        } else if (mNodesNumber <= 15)
-        {
-            cache_size = 6000;
-        } else if (mNodesNumber <= 20)
-        {
-            cache_size = 20000;
-        } else if (mNodesNumber <= 25)
-        {
-            cache_size = 40000;
-        } else
-        {
-            cache_size = 200000;
-        }
-        if (mNodesNumber <= 30)
-        {
-            cache_size = 200000;
-        } else if (mNodesNumber <= 35)
-        {
-            cache_size = 1000000;
-        } else
-        {
-            cache_size = 2000000;
-        }
-    }
-    bdd_init(cache_size*10, cache_size);
-    */
     bdd_setvarnum(mNodesNumber * 2);
     bdd_setcacheratio(64);
-    //bdd_setmaxincrease(node_number);
     bdd_varblockall();
 }
 
@@ -704,7 +660,7 @@ void RandomBooleanNetwork::createBooleanFunction(unsigned node_id, bool canalyzi
 bdd RandomBooleanNetwork::find_next_cycles(bddPair* variables_pair){
     assert(mNodesNumber > 0);
     //This method compute delta_j+1, fixed delta_j. Transition function
-    //T^j is memorized in mpNodeNthFunction[] and will be upgrated to T^j+1.
+    //T^j is stored in mpNodeNthFunction[] and is updated (T^{j+1}).
     for(unsigned i = 0; i < mNodesNumber; i++){
         mpNodeNthFunction[i] = bdd_veccompose(mpNodeNthFunction[i], variables_pair);
     }
@@ -720,8 +676,8 @@ bdd RandomBooleanNetwork::find_next_cycles(bddPair* variables_pair){
 bdd RandomBooleanNetwork::find_backward_reachable_states(bdd current_ring, bdd states,
         bdd set_variables, bddPair* variables_pair, unsigned &steps_max)
 {
-    //This method will find the backward reachable states using the Reverse Transition Function
-    //if a given bdd 'states' which can be a single or a set of states.
+    /* This method computes the backward reachable states using the Reverse Transition Function
+     * starting from a bdd 'states'. */
     assert(mpReverseTransitionFunction);
 
     unsigned length = 0;
@@ -753,7 +709,9 @@ void RandomBooleanNetwork::findAttractors()
     if (mAttractors.empty()) {
         mAttractorLength.clear();
         unsigned j = 1;
-        unsigned steps_max = 1; //such as forall x, F^step_max (x) = y where y is a state of an attractor.
+        unsigned steps_max = 1;
+        /* such as forall x, F^{step_max} (x) = y
+         * where y is a state of an attractor. */
         bddPair* replace_backward_assignment;
         bddPair* replace_forward_assignment;
         replace_backward_assignment = bdd_newpair();
@@ -815,14 +773,8 @@ void RandomBooleanNetwork::findAttractors()
                 steps_max --;
             } while (steps_max > 0);
         }
-    } // ELSE ALREADY FOUNDED!
-    /*
-    for (unsigned i=0; i<mAttractors.size(); i++)
-    {
-        std::cout<< i << ". ";
-        bdd_allsat(mAttractors.at(i), allsatHandlerPrint);
-    }
-    */
+    } // ELSE ALREADY FOUND!
+
 }
 
 void RandomBooleanNetwork::storageAttractors(bdd states_return_to_themself, unsigned j,
@@ -848,7 +800,6 @@ void RandomBooleanNetwork::storageAttractors(bdd states_return_to_themself, unsi
         mAttractors.push_back(attractor_states);
         mAttractorLength.push_back(j);
     }
-    //std::cout<<"Attractors of size " << j << "\n";
 }
 
 std::vector<std::map<unsigned,double> > RandomBooleanNetwork::getAttractorMatrix() const

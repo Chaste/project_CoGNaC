@@ -99,9 +99,7 @@ void ArrayDirectedGraph::albertBarabasiGenerator(unsigned average_inputs_number_
 
 void ArrayDirectedGraph::erdosRenyiGenerator(unsigned average_inputs_number_per_node)
 {
-    /*
-     * It can generate self edges.
-     */
+    /* This method can generate self edges. */
     for(unsigned i = 0; i < average_inputs_number_per_node * mSize; i++)
     {
         while (!addEdgeById(RandomNumberGenerator::Instance()->randMod(mSize),RandomNumberGenerator::Instance()->randMod(mSize)));
@@ -120,10 +118,8 @@ bool ArrayDirectedGraph::addEdgeById(unsigned input_id, unsigned output_id){
 }
 
 void ArrayDirectedGraph::sortGraph(){
-    /* sort the graph in decreasing order respect number of
-     * input nodes, starting from node zero.
-     * We use bubble sort, because size of the graph is
-     * usually not too big.
+    /* Sort the graph in decreasing order respect number of
+     * input nodes, starting from node zero using bubble sort.
      */
     unsigned i=0;
     for (i=0; i<mSize - 1; i++)

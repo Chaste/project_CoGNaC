@@ -2,6 +2,9 @@
 #include <cassert>
 #include <math.h>
 
+void addChildrenRecursively(const std::vector<DifferentiationTreeNode*> vertices,
+		unsigned parent_id_original, unsigned parent_id_new,  DifferentiationTree* tree);
+
 DifferentiationTree::DifferentiationTree() :
 mFakeRoot(false)
 {
@@ -15,7 +18,7 @@ mFakeRoot(false)
 DifferentiationTree::DifferentiationTree(double cell_cycle_length) :
 mFakeRoot(false)
 {
-    assert(cell_cycle_length > 0.0);
+    assert(cell_cycle_length >= 0.0);
 
     mVertices.push_back(
             new DifferentiationTreeNode(cell_cycle_length));
@@ -47,7 +50,7 @@ DifferentiationTree::DifferentiationTree(
         ) :
 mFakeRoot(false)
 {
-    assert(cell_cycle_length > 0.0);
+    assert(cell_cycle_length >= 0.0);
 
     mVertices.push_back(
             new DifferentiationTreeNode(
@@ -217,7 +220,7 @@ unsigned DifferentiationTree::searchParentNode(
         unsigned starting_node) const
 {
     assert(starting_node < mVertices.size());
-    /* Check the set inclusion of child component states in parent component state */
+    /* Check the set inclusion of child component states in parent's component. */
     std::set<unsigned> parent_component_states = mVertices.at(starting_node)->getComponentStates();
     if(std::includes(parent_component_states.begin(), parent_component_states.end(),
             child_component_states.begin(), child_component_states.end()))
@@ -263,7 +266,6 @@ void DifferentiationTree::addChild(unsigned parent, DifferentiationTreeNode* nod
         mLeaves.insert(mVertices.size() - 1);
         unsigned parent_level = mNodesLevel.at(parent);
         mNodesLevel.push_back(parent_level + 1);
-        // parent_level must not be > mLevelNodes.size()
         if (parent_level + 1 == mLevelNodes.size())
             mLevelNodes.push_back(std::set<unsigned>());
 
@@ -357,6 +359,29 @@ void DifferentiationTree::addNewChild(
 		mLevelNodes.push_back(std::set<unsigned>());
 
 	mLevelNodes.at(parent_level + 1).insert(mVertices.size()-1);
+}
+
+std::vector<DifferentiationTree*> DifferentiationTree::SplitTreeFromFakeRoot() const
+{
+	std::vector<DifferentiationTree*> trees;
+	if (!mFakeRoot || mVertices.size() == 0) return trees;
+	DifferentiationTreeNode* root = mVertices.at(0);
+	std::vector<unsigned> root_children = root->getChildren();
+	for (unsigned child_id = 0; child_id < root_children.size(); child_id++)
+	{
+		DifferentiationTreeNode* child = mVertices.at(root_children.at(child_id));
+		DifferentiationTree* tree =
+				new DifferentiationTree(
+				child->getCellCycleLength(),
+				child->getComponentStates(),
+				child->getStationaryDistribution(),
+				child->getDifferentiationProbability()
+				);
+		if (child->getChildren().size() > 0)
+			addChildrenRecursively(mVertices, child_id, 0, tree);
+		trees.push_back(tree);
+	}
+	return trees;
 }
 
 void DifferentiationTree::normaliseLength(double hours_mean)
@@ -631,4 +656,24 @@ void DifferentiationTree::setDifferentiationProbability(
 {
 	assert(node_id < mVertices.size());
 	mVertices.at(node_id)->setDifferentiationProbability(differentiation_probability);
+}
+
+void addChildrenRecursively(const std::vector<DifferentiationTreeNode*> vertices,
+		unsigned parent_id_original, unsigned parent_id_new,  DifferentiationTree* tree)
+{
+	DifferentiationTreeNode* parent_node = vertices.at(parent_id_original);
+	std::vector<unsigned> children = parent_node->getChildren();
+	for (unsigned child_id = 0; child_id < children.size(); child_id++)
+	{
+		DifferentiationTreeNode* child = vertices.at(children.at(child_id));
+		tree->addNewChild(
+			parent_id_new,
+			child->getCellCycleLength(),
+			child->getComponentStates(),
+			child->getStationaryDistribution(),
+			child->getDifferentiationProbability()
+		);
+		if (child->getChildren().size() > 0)
+			addChildrenRecursively(vertices, children.at(child_id), tree->size()-1, tree);
+	}
 }

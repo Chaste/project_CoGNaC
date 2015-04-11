@@ -3,9 +3,15 @@
 
 /*
  * = Testing the class {{{GraphNode}}} =
- * This class is used to test that the class {{{GraphNode}}} is implemented correctly.
  *
- * === Including header files ===
+ * == Introduction ==
+ *
+ * EMPTYLINE
+ *
+ * This class is used to test that the class {{{GraphNode}}}
+ * is implemented correctly.
+ *
+ * == Including header files ==
  * We begin by including the necessary header files.
 */
 
@@ -18,30 +24,32 @@ class TestGraphNode  : public CxxTest::TestSuite
 public:
 	/*
 	 * == Testing methods and functions. ==
+	 *
+	 * EMPTYLINE
 	 */
 	void testGraphNode()
     {
-		/* We instantiate four nodes, used during the test: */
+		/* We start instantiating four nodes. */
         GraphNode node0(0);
         GraphNode node1(1);
         GraphNode node2(2);
         GraphNode node3(3);
 
-        /* We add some input arc to nodes, obtaining a graph. This graph
-         * is not managed directly, we just check the information saved
-         * on each node. */
+        /* We add some input edge to each node, obtaining a graph. This graph
+         * is not managed directly using {{{ArrayDirectedGraph}}} class, but
+         * but used in order to test data saved on each node. */
         node0.addInputEdgeById(node1.getId());
         node0.addInputEdgeById(node3.getId());
         node1.addInputEdgeById(node1.getId());
         node2.addInputEdgeById(node3.getId());
 
-        /* Test if edges exist or not. */
+        /* We test if edges exist. */
         TS_ASSERT(node0.existsEdgeFrom(node1.getId()));
         TS_ASSERT(!node3.existsEdgeFrom(node1.getId()));
         TS_ASSERT(node3.getIncomingVerticesSize() == 0);
 
-        /* We define an array of node ids. Then, we associate
-         * just five of these nodes as incoming arcs of a node.
+        /* We define an array of node ids and associate
+         * only five of these nodes as incoming arcs of the node 3.
          */
         unsigned array[]= {89,2,3,4,5,6,7,8,9};
         unsigned* p_a = array;
@@ -60,7 +68,7 @@ public:
         TS_ASSERT(node3.getId() == 99);
 
         /* Finally, we test the method {{{getIncomingVerticesId}}}
-         * by evaluating it on a single node.
+         * by evaluating it on the node 1.
          */
         std::vector<unsigned> inc_vertices = node1.getIncomingVerticesId();
         TS_ASSERT(inc_vertices.size() > 0);

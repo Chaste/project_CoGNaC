@@ -122,6 +122,16 @@ public:
             unsigned starting_node = 0) const;
 
     /**
+     * If the tree has a fake root, it returns a vector of differentiation trees
+     * where the roots of these trees are its children. These trees have not a fake
+     * root, so can be used during simulations.
+     *
+     * @return a vector of pointers to DifferentiationTree objects which
+     * should be deleted by the user at the end.
+     */
+    std::vector<DifferentiationTree*> SplitTreeFromFakeRoot() const;
+
+    /**
      * This method normalize the CellCycleLength attribute of every
      * node in the tree based on a user-defined hours mean.
      * It is the second and last step after

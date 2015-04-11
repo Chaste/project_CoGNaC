@@ -1,21 +1,25 @@
-#ifndef TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_
-#define TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_
+#ifndef TESTCANCERCELLCOLONIZATIONOFACOLONCRYPTLITERATEPAPER_HPP_
+#define TESTCANCERCELLCOLONIZATIONOFACOLONCRYPTLITERATEPAPER_HPP_
 
 /*
- * = Example of a cancer cell colonization of a colon crypt =
+ * = Cancer cell colonization of a colon crypt =
  *
  * == Introduction ==
  *
  * EMPTYLINE
  *
  * In this test we show how Chaste can be used to simulate a model of a colon crypt
- * combining a center-based 2-D representation of cells at the spatial level, and a
- * NRBN-based underlying gene regulatory network.
+ * combining a center-based 2-D representation of cells at the spatial level and a
+ * NRBN-based model underlying gene regulatory network.
  * Full details of the computational model can be found in
  * Rubinacci ''et al.'' (2015).
  *
- * This class was used to produce the results in Figure 5 and the differentiation tree
+ * This class was used to produce Figure 5 and the differentiation tree
  * in Figure 4.
+ *
+ * == Including header files ==
+ *
+ * EMPTYLINE
  *
  * We begin by including the necessary header files.
  */
@@ -27,23 +31,22 @@
 #include <set>
 #include "float.h"
 
-/* The next header defines the model based on the random Boolean network
- * theory.*/
+/* The next header defines the NRBN model.*/
 #include "ThresholdErgodicSetDifferentiationTree.hpp"
 
 /* The next two headers are used to define a `DifferentiationTree` object.*/
 #include "DifferentiationTree.hpp"
 #include "DifferentiationTreeNode.hpp"
 
-/* The next header file defines a cell-cycle model class which is based
+/* The next header file defines a cell-cycle model which is based
  * on a `DifferentiationTree` object. */
 #include "DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp"
 
 /* The next header file is used in order to visualise the simulation using Paraview. */
 #include "VoronoiDataWriter.hpp"
 
-/* The next header file defines a property 'differentiation_colour' used
- * for visualise distict cellular type having different colours using Paraview.*/
+/* The next header file defines a property named 'Differentiation Colour' used
+ * for visualise distinct cellular types having different colours using Paraview.*/
 #include "CellDifferentiationTypeWriter.hpp"
 
 /* The next header file defines a helper class for generating cells.*/
@@ -66,7 +69,7 @@
  */
 #include "MeshBasedCellPopulationWithGhostNodes.hpp"
 
-/* The next header file defines the class that simulates the evolution of a CellPopulation, specialized to deal with the cylindrical crypt geometry. */
+/* The next header file defines the class that simulates the evolution of an off-lattice `CellPopulation`*/
 #include "OffLatticeSimulation.hpp"
 
 /* The next header file defines a cell killer class, which implements sloughing of cells into
@@ -76,7 +79,7 @@
 
 /* The next header file defines a force law, based on a linear spring, for describing
  * the mechanical interactions between neighbouring cells in the crypt.
-*/
+ */
 #include "GeneralisedLinearSpringForce.hpp"
 //This test is always run sequentially (never in parallel)
 #include "FakePetscSetup.hpp"
@@ -205,11 +208,11 @@ namespace boost
  * First of all, we define the test class.
  */
 
-class TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel : public AbstractCellBasedTestSuite
+class TestCancerCellColonizationOfaColonCryptLiteratePaper : public AbstractCellBasedTestSuite
 {
 public:
 
-	/* We now test that our new cell population boundary
+	/* We test that our new cell population boundary
 	 * condition is implemented correctly. This test is
 	 * very similar to the test implemented in
 	 * [wiki:UserTutorials/CreatingAndUsingANewCellPopulationBoundaryCondition this tutorial].
@@ -249,11 +252,11 @@ public:
 	 * EMPTYLINE
 	 *
 	 * Starting from 'fig4_atm.dat' containing a description of the ATN
-	 * and the attractors lengths, we calculate a differentiation tree using
+	 * and the attractors lengths of the network, we calculate a differentiation tree using
 	 * the TES theory. Here we test the topological properties of the differentiation
 	 * tree and the differentiation probabilities computed.
 	 */
-    void TestFig4NetworkProperties()
+    void TestFigure4NetworkProperties()
     {
     	/* We start instantiating a `ThresholdErgodicSetDifferentiationTree`
     	 * object from an ATN defined in the file `networks_samples/fig4_atn.dat`.
@@ -274,13 +277,14 @@ public:
 		TS_ASSERT_EQUALS(level_nodes.at(1).size(), 3u);
 
 		/* We want also test the differentiation probabilities associated
-		 * to the root node. We define an array of probabilities. */
+		 * to the root node.
+		 * We define an array of expected probabilities. */
 		double* test_prob = new double[3];
 		test_prob[0] = 0.946185;
 		test_prob[1] = 0.0518302;
 		test_prob[2] = 0.00198491;
 
-		/* We get the differentiation probabilities from the root node
+		/* We also get the differentiation probabilities from the root node
 		 * and we test the size of the vector. */
 		std::vector<double> diff_prob_root = diff_tree->getRoot()->getDifferentiationProbability();
 		TS_ASSERT_EQUALS(3, diff_prob_root.size());
@@ -313,7 +317,7 @@ public:
         delete diff_tree;
     }
 
-	/* == Simulating a cancer cell colonization ==
+	/* == Simulating a cancer cell colonization (Figure 5) ==
 	 *
 	 * EMPTYLINE
 	 *
@@ -328,18 +332,18 @@ public:
     void TestSimulationCancerCellColonization()
 	{
     	/* We start reseeding the `RandomNumberGenerator`. In
-    	 * this case it is seeded with the number zero, but if we
+    	 * this case it is seeded with the seed zero, but if we
     	 * want to show distinct behaviours of the system,  we need
     	 * to seed it using a random number.
     	 * Two ways are:
-		 * RandomNumberGenerator::Instance()->Reseed(time(NULL));
+		 * `RandomNumberGenerator::Instance()->Reseed(time(NULL))`
 		 * where time() returns the number of seconds since January 1970.
-		 * RandomNumberGenerator::Instance()->Reseed(getpid());
+		 * `RandomNumberGenerator::Instance()->Reseed(getpid())`
 		 * where getpid() returns the system's process ID for the current program.
     	 */
     	RandomNumberGenerator::Instance()->Reseed(0);
 
-    	/* We instante a `ThresholdErgodicSetDifferentiationTree`
+    	/* We instantiate a `ThresholdErgodicSetDifferentiationTree`
 		 * object from an ATN defined in the file `networks_samples/fig4_atn.dat`.
 		 */
     	ThresholdErgodicSetDifferentiationTree TES_tree("projects/CoGNaC/networks_samples/fig4_atn.dat");
@@ -348,11 +352,12 @@ public:
     	DifferentiationTree* diff_tree = TES_tree.getDifferentiationTree();
 
     	/* Save the differentiation tree in a .gml file, in order
-    	 * to visualise it using graph visualisation tool (e.g. Cytoscape) */
+    	 * to visualise it using graph visualisation tool (e.g. Cytoscape).
+    	 * Figure 4 - Differentiation Tree.*/
     	diff_tree->printDifferentiationTreeToGmlFile("networks_generated","omg.gml");
 
-    	/* Call a method (defined below) which assign colours to
-    	 * each node in the tree (cell types).
+    	/* Call a method (defined below) which associates a distinct colour to
+    	 * each node in the tree (cell type).
     	 */
     	markLessProbableWithRedColour(diff_tree);
 
@@ -366,7 +371,7 @@ public:
          * the {{{HoneycombMeshGenerator}}}. This generates a honeycomb-shaped mesh,
          * in which all nodes are equidistant. Here the first and second arguments
          * define the size of the mesh - we have chosen a mesh that is 20 nodes (i.e.
-         * cells) wide, and 20 nodes high. The third defines the number of ghost nodes.
+         * cells) wide, and 20 nodes high. The third argument defines the number of ghost nodes.
          */
 		HoneycombMeshGenerator generator(20, 20, 4);
 		MutableMesh<2,2>* p_mesh = generator.GetMesh();
@@ -379,7 +384,7 @@ public:
 		std::vector<unsigned> location_indices = generator.GetCellLocationIndices();
 
         /* Having created a mesh, we now create a {{{std::vector}}} of {{{CellPtr}}}s.
-         * To do this, we the `CellsGenerator` helper class again. This time the second
+         * To do this, we use the `CellsGenerator` helper class again. This time the second
          * argument is different and is the number of real nodes in the mesh.
          * All cells have {{{StemCellProliferativeType}}}.
          */
@@ -389,8 +394,8 @@ public:
 		cells_generator.GenerateBasicRandom(cells, location_indices.size(), p_stem_type);
 
 		/* Now we need to associate each cell with a {{{DifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel}}}
-		 * and initialise it (which is different for each cell). So, for each cell, we
-		 * initialise its cell cycle model, and randomly set its birthtime.
+		 * and initialise it (each instance is different). So, for each cell we
+		 * initialise its cell cycle model and randomly set its birthtime.
 		 */
 		for (unsigned i=0; i<cells.size(); i++)
 		{
@@ -451,8 +456,8 @@ public:
 
 	}
 
-    /* This method gives a colour to each cell type in a differentiation tree,
-     * marking the less probable to have an high value (from the range [0,4]). */
+    /* This method associate a colour to each cell type in a differentiation tree,
+     * marking the less probable to have the highest value (from the range [0,4]). */
     void markLessProbableWithRedColour(DifferentiationTree* diff_tree)
     {
     	diff_tree->setColour(0, 0.0);
@@ -495,7 +500,7 @@ public:
 	* EMPTYLINE
 	*
 	* To visualize the results, we must first open Paraview. We open the folder containing our test output using the 'file' menu at
-	* the top. The output will be located in {{{/tmp/$USER/testoutput/Test2DMonolayerSimulationForVisualizing/results_from_time_0}}}.
+	* the top. The output will be located in {{{/tmp/$USER/testoutput/SimulationCancerCellColonization/results_from_time_0}}}.
 	* There will be a .vtu file generated for every timestep, which must all be opened at once to view the simulation. To do this,
 	* simply select {{{results.pvd}}}. We should now see {{{results.pvd}}}  in the pipeline browser. We click {{{Apply}}} in the properties tab
 	* of the object inspector, and we should now see a visualization in the right hand window.  (An alternative to opening the {{{results.pvd}}}
@@ -513,12 +518,12 @@ public:
 	* selected in the 'Scalars' drop down menu. Once we have edited this, we click apply (we may need to click it twice), and the visualisation on the
 	* right window will have changed to eliminate ghost nodes.
 	*
-	* In order to view cells with different colours, we must click in under {{{Coloring}}} in the drop down tab and select 'Differentiation Colour'.
-	* Once we have selected this, we click the 'Set Range' button in the {{{Mapping Data}}} tab (on the right) and set 0 as minimum and 4 as maximum.
+	* In order to view cells with different colours, we must click} in the drop down tab under {{{Coloring}} and select 'Differentiation Colour'.
+	* Once we have selected this, we click the 'Set Range' button in the {{{Mapping Data}}} tab (on the right) and set 0 as minimum and 4 as maximum value.
 	*
 	* To view the simulation, simply use the animation buttons located on the top toolbar. We can also save a screenshot, or an animation, using
 	* the appropriate options from the file menu.
 	*/
 
 };
-#endif /* TESTRUNNINGCRYPTSIMULATIONSUSINGDIFFERENTIATIONTREEBASEDCELLCYCLEMODEL_HPP_ */
+#endif /* TESTCANCERCELLCOLONIZATIONOFACOLONCRYPTLITERATEPAPER_HPP_ */

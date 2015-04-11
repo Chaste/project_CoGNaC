@@ -162,7 +162,6 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
 					if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
 					{
 						differentiation_tree->addNewChild(parent, component_states);
-						//differentiation_tree->setThreshold(parent,threshold);
 						differentiation_tree->setThreshold(differentiation_tree->size()-1,threshold);
 					}
 				}
@@ -180,7 +179,6 @@ DifferentiationTree* ThresholdErgodicSetDifferentiationTree::computeDifferentiat
 					if (parent < differentiation_tree->size() && differentiation_tree->getNode(parent)->getComponentStates()!=component_states)
 					{
 						differentiation_tree->addNewChild(parent, component_states);
-						//differentiation_tree->setThreshold(parent,threshold);
 						differentiation_tree->setThreshold(differentiation_tree->size()-1,threshold);
 					}
 				}
@@ -268,12 +266,9 @@ void ThresholdErgodicSetDifferentiationTree::normalizePrunedMatrix(
         {
             row_sum += iterator->second;
         }
-        if (row_sum == 0)
+        if (row_sum != 0)
         {
-            //matrix.at(row)[row] = 1.0; //using [] notation we don't care about previous existing elements.
-        } else
-        {
-            for (iterator=matrix.at(row).begin(); iterator!=matrix.at(row).end(); ++iterator)
+        	for (iterator=matrix.at(row).begin(); iterator!=matrix.at(row).end(); ++iterator)
             {
                 matrix.at(row).at(iterator->first) = iterator->second / row_sum;
             }

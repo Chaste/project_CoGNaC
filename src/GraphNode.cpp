@@ -79,7 +79,7 @@ void GraphNode::setIncomingVerticesId(
 {
     if (!p_input_vertices)
         EXCEPTION("Error, pointer is NULL.");    mIncomingVertices.clear();
-    //we use set for avoid duplicate incoming edges.
+    //we use a set avoiding duplicate incoming edges.
     std::set<unsigned> set_vertices (
             p_input_vertices,
             p_input_vertices+vertices_number);
