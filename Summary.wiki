@@ -43,6 +43,7 @@ Now the project should be installed, and everything should compile and run corre
 test if everything is installed correctly, you can run some tests. So from a command line do:
 {{{
 cd <Chaste3.3 path>
+scons test_suite=projects/CoGNaC/test/TestGraphNode.hpp
 scons test_suite=projects/CoGNaC/test/TestArrayDirectedGraph.hpp
 scons test_suite=projects/CoGNaC/test/TestDifferentiationTree.hpp
 scons test_suite=projects/CoGNaC/test/TestRandomBooleanNetwork.hpp
@@ -66,7 +67,7 @@ There are three folders - `networks_samples`, `src` and `test`.
   * `TestGraphNode.hpp` - testing `GraphNode.hpp` class.
   * `TestRandomBooleanNetwork.hpp` - testing `RandomBooleanNetwork.hpp` class and the Buddy dependency.
   * [wiki:PaperTutorials/CoGNaC/SearchingGeneActivationPatternsInThelperNetwork TestSearchingGeneActivationPatternsInThelperNetworkLiteratePaper.hpp] - this file can be run to generate the results in Figure 3 showing the attractors of the Thelper newtork and the generated ATN.
-  * [wiki:PaperTutorials/CoGNaC/CancerCellColonizationOfaColonCrypt TestCancerCellColonizationOfaColonCryptLiteratePaper.hpp] - this file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree. It can also generate the crypt simulations shown in Figure 5.
+  * [wiki:PaperTutorials/CoGNaC/CancerCellColonizationOfaColonCrypt TestCancerCellColonizationOfaColonCryptLiteratePaper.hpp] - this file can be run to generate the results in Figure 4 showing the ATN and the differentiation tree and to generate the crypt simulations shown in Figure 5.
   
 == Running tests ==
 You can then run tests and simulations with, for example,
@@ -76,7 +77,7 @@ scons test_suite=projects/CoGNaC/test/TestSearchingGeneActivationPatternsInThelp
 }}}
 or
 {{{
-scons test_suite=projects/CoGNaC/test/TestRunningCryptSimulationsUsingDifferentiationTreeBasedWithAsymmetricDivisionCellCycleModel.hpp
+scons test_suite=projects/CoGNaC/test/TestCancerCellColonizationOfaColonCryptLiteratePaper.hpp
 }}}
 
 ----
