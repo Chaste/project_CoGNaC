@@ -362,8 +362,8 @@ public:
     	markLessProbableWithRedColour(diff_tree);
 
     	/* We normalise the cell cycle length of each cell type using
-    	 * the average cell cycle length. In the paper it is indicated
-    	 * with \Lambda.
+    	 * the average cell cycle length. In our paper it is indicated
+    	 * with \Lambda (a NRBN time step corresponds to 0.25 hours).
     	 */
 		diff_tree->normaliseLength(8.0);
 
@@ -448,7 +448,13 @@ public:
         MAKE_PTR_ARGS(SloughingCellKiller<2>, p_killer, (&cell_population, tissue_height));
         simulator.AddCellKiller(p_killer);
 
-        /* To run the simulation, we call {{{Solve()}}}. */
+        /* To run the simulation, we call {{{Solve()}}}. Please note that
+         * in some cases the simulation could fail. The reason is that
+         * cancer cells have a fast replication rate and this can cause
+         * problems at the spatial level (managed by Chaste and not directly
+         * by CoGNaC). In this case you can visualise the simulation until
+         * the timestep which where the problem arise.
+         */
 		simulator.Solve();
 
 		/* Release the memory. */
