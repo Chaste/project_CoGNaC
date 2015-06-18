@@ -354,7 +354,7 @@ public:
     	/* Save the differentiation tree in a .gml file, in order
     	 * to visualise it using graph visualisation tool (e.g. Cytoscape).
     	 * Figure 4 - Differentiation Tree.*/
-    	diff_tree->printDifferentiationTreeToGmlFile("networks_generated","omg.gml");
+    	diff_tree->printDifferentiationTreeToGmlFile("networks_generated","differentiation_tree.gml");
 
     	/* Call a method (defined below) which associates a distinct colour to
     	 * each node in the tree (cell type).
