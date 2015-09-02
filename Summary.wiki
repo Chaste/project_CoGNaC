@@ -1,10 +1,10 @@
 = CoGNaC: a Chaste plugin for the multiscale simulation of Gene regulatory Networks driving the spatial dynamics of tissues and Cancer =
 
-Welcome to CoGNaC.
+Welcome to the Chaste wiki.
 
 Designed only to work as bolt-on project for Chaste v3.2 or v3.3.
 
-This section contains pages generated automatically from the source code accompanying "CoGNaC: a Chaste plugin for the multiscale simulation of Gene regulatory Networks driving the spatial dynamics of tissues and Cancer".
+This section contains pages generated automatically from the source code accompanying Rubinacci et al. "[http://dx.doi.org/10.4137/CIN.S19965 CoGNaC: A Chaste Plugin for the Multiscale Simulation of Gene Regulatory Networks Driving the Spatial Dynamics of Tissues and Cancer]", our paper in [http://www.la-press.com/journal-cancer-informatics-j10 Cancer informatics], 2015.
 
 == User manual ==
 A detailed user guide of CoGNaC can be found as an attachment at the bottom of this page.
