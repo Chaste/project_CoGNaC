@@ -287,7 +287,7 @@ public:
 		/* We also get the differentiation probabilities from the root node
 		 * and we test the size of the vector. */
 		std::vector<double> diff_prob_root = diff_tree->getRoot()->getDifferentiationProbability();
-		TS_ASSERT_EQUALS(3, diff_prob_root.size());
+		TS_ASSERT_EQUALS(3u, diff_prob_root.size());
 
 		/* Convert the vector into an array.*/
 		double* array_diff_probs = &diff_prob_root[0];

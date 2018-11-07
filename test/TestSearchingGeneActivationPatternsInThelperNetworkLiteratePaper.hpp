@@ -55,7 +55,7 @@ public:
         	/* We test that the attractors found are all single-point. */
             std::vector<unsigned> attractors_lengths = TES_tree.getBooleanNetwork()->getAttractorLength();
             for (unsigned i=0; i<attractors_lengths.size(); i++){
-            	TS_ASSERT_EQUALS(attractors_lengths.at(i),1);
+            	TS_ASSERT_EQUALS(attractors_lengths.at(i),1u);
             }
 
             /* We export the stochastic matrix in a file, where we can

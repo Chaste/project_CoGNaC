@@ -1,4 +1,5 @@
 #include "GraphNode.hpp"
+#include <iostream>
 #include <boost/shared_ptr.hpp>
 
 GraphNode::GraphNode(unsigned node_id) :
